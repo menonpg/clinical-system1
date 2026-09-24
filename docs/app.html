@@ -1,0 +1,61 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Screening app</title>
+<link rel="stylesheet" href="style.css">
+</head>
+<body>
+<div class="shell">
+<nav class="side" aria-label="Documentation">
+<a class="brand" href="index.html">Clinical<br>System One</a>
+<div class="grp">Project</div>
+<a href="index.html">Overview</a>
+<a href="app.html" aria-current="page">App & demo</a>
+<a href="explorer.html">Screening Explorer</a>
+<div class="grp">Upstream models</div>
+<a href="laya.html">Laya</a>
+<a href="kev.html">Kev</a>
+<a href="compare.html">Laya vs Kev</a>
+<div class="grp">Clinical study</div>
+<a href="clinical.html">Study design</a>
+<a href="results.html">Results</a>
+<a href="reproduce.html">Reproduce</a>
+</nav>
+<main>
+<div class="eyebrow">Project · run it yourself</div>
+<h1>Screening app</h1>
+<p class="lede">This is a local web app for screening clinical notes against checklists. It runs the same models and the same code as the study, and the note never leaves your machine.</p>
+
+<h2>Start it</h2>
+<pre><code>git clone https://github.com/menonpg/clinical-system1 &amp;&amp; cd clinical-system1
+./setup.sh            # clones Laya + Kev, builds both environments
+app/run.sh            # starts Kev-4B (:8009) and the app, then opens http://127.0.0.1:8765
+app/run.sh --no-kev   # CPU-only: Laya, or Ollama if it is running</code></pre>
+
+<figure><img src="figures/app.png" alt="The screening app: checklist, model and note on the left; per-criterion probabilities, eligibility and the automation decision on the right"><figcaption>Screening one hand-written note with Kev-4B and computed facts turned on.</figcaption></figure>
+
+<h2>What it does</h2>
+<ul>
+  <li><b>Screen a note.</b> Pick the USPSTF lung or AAA checklist, or build your own by adding criteria in the browser, each with the answer it requires. Pick a model and an error budget. You get P(yes) per criterion, P(eligible) as the product of the required answers, the criteria that failed, and one of three decisions: <i>auto-eligible</i>, <i>auto-ineligible</i> or <i>send to clinician review</i>.</li>
+  <li><b>Threshold.</b> For the built-in checklists, the app uses the confidence threshold measured in the study for that model at your error budget (<code>app/operating_points.json</code>). For custom checklists it falls back to 0.90 and warns you to measure your own.</li>
+  <li><b>Computed facts.</b> An optional deterministic hook appends pack-years and years since quitting. The app shows exactly what it added.</li>
+  <li><b>Batch.</b> Paste many notes, or load the 40 hand-written examples, and get a table of decisions.</li>
+  <li><b>Use in your code.</b> The current checklist as a System One HTTP request (works against any Kev server) and as Python.</li>
+</ul>
+
+<h2>Screening Explorer</h2>
+<p>A single-file page with every model's recorded predictions on the study notes. Drag the automation threshold to see how many notes are auto-decided, how many go to review, and how many automated decisions are wrong. Then open any note for its criterion-by-criterion audit. <a href="explorer.html">Open the explorer</a>.</p>
+
+<h2>API</h2>
+<pre><code>POST /api/screen  {"note": "...", "model": "kev4b", "facts": true, "budget": 5,
+                   "checklist": {"key": "lcs", "title": "...", "criteria": [{"key": "lcs_age", "question": "...", "required": true}, ...]}}
+POST /api/batch   {"notes": ["...", "..."], ...same fields}
+GET  /api/config  checklists, models (with availability), examples</code></pre>
+
+<footer>Research prototype, not a medical device. Code: Apache-2.0. Upstream: Laya (NandhaKishorM/laya), Kev (jaredpalmer/kev), both Apache-2.0.</footer>
+</main>
+</div>
+</body>
+</html>

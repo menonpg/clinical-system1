@@ -1,0 +1,10 @@
+\begin{table}[t]\centering\small
+\caption{Latency for the full 5-question lung checklist per note on one Apple M1 Max, uncontended (50 notes after 3 warm-up calls).}\label{tab:lat}
+\begin{tabular}{llrrr}\toprule System & Params & p50 ms & p90 ms & notes/s \\ \midrule
+Laya EN, Apple GPU (MPS) & 421M & 126 & 136 & 7.96 \\
+Laya EN, CPU only & 421M & 506 & 571 & 1.93 \\
+Laya FT (ours), MPS & 421M & 124 & 136 & 8.04 \\
+Kev-0.8B, MLX bf16 & 0.8B & 134 & 137 & 7.68 \\
+Kev-4B, MLX bf16 & 4B & 694 & 703 & 1.49 \\
+Gemma~4, Ollama & $\sim$8B & 1250 & 1373 & 0.79 \\
+\bottomrule\end{tabular}\end{table}

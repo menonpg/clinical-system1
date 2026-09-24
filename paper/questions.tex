@@ -1,0 +1,18 @@
+\begin{small}
+\paragraph{Lung cancer screening with low-dose CT (USPSTF 2021 (Grade B), JAMA 2021;325(10):962-970).}\begin{itemize}
+\item \texttt{lcs\_age} (required: yes): Is the patient between 50 and 80 years old, inclusive?
+\item \texttt{lcs\_pack\_years} (required: yes): Does the patient have a smoking history of at least 20 pack-years (packs per day multiplied by years smoked; 20 cigarettes = 1 pack)?
+\item \texttt{lcs\_recency} (required: yes): Does the patient currently smoke, or did they quit smoking 15 or fewer years ago?
+\item \texttt{lcs\_limiting} (required: no): Does the patient have a health problem that substantially limits life expectancy, or are they unwilling or unable to undergo curative lung surgery?
+\item \texttt{lcs\_eligible} (direct): Under the USPSTF 2021 lung cancer screening recommendation (adults aged 50 to 80 years who have a 20 pack-year smoking history and currently smoke or have quit within the past 15 years, and who do not have a health problem that substantially limits life expectancy or the ability or willingness to have curative lung surgery), is this patient eligible for annual low-dose CT screening?\end{itemize}
+\paragraph{One-time abdominal aortic aneurysm ultrasound screening (USPSTF 2019 (Grade B), JAMA 2019;322(22):2211-2218).}\begin{itemize}
+\item \texttt{aaa\_male} (required: yes): Is the patient male?
+\item \texttt{aaa\_age} (required: yes): Is the patient between 65 and 75 years old, inclusive?
+\item \texttt{aaa\_ever\_smoked} (required: yes): Has the patient ever smoked tobacco (current or former smoker)?
+\item \texttt{aaa\_eligible} (direct): Under the USPSTF 2019 recommendation (one-time ultrasound screening for abdominal aortic aneurysm in men aged 65 to 75 years who have ever smoked), is this patient eligible for AAA screening?\end{itemize}
+\paragraph{TREC CT 2021.}\begin{itemize}
+\item \texttt{eligible}: Based on the patient description, is this patient eligible for the clinical trial, meaning they satisfy the inclusion criteria and meet none of the exclusion criteria?
+\item \texttt{meets\_inclusion}: Does the patient satisfy the trial's inclusion criteria?
+\item \texttt{meets\_exclusion}: Does the patient meet any of the trial's exclusion criteria?
+\end{itemize}
+\end{small}

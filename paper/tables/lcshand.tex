@@ -1,0 +1,12 @@
+\begin{table}[t]\centering\small
+\caption{Lung screening on 40 hand-written free-text notes (13 eligible).}\label{tab:lcshand}
+\resizebox{\linewidth}{!}{\begin{tabular}{lrrrrrrrr}\toprule
+ & Direct & \multicolumn{5}{c}{Checklist-AND} & All crit. & \\ \cmidrule(lr){2-2}\cmidrule(lr){3-7}
+Model & AUROC & AUROC & Acc & Brier$\downarrow$ & Cov@5\% & Cov@10\% & correct & $n$ \\ \midrule
+Laya EN (0-shot) & 0.462 & 0.553 & 0.675 & 0.302 & 0.075 & 0.075 & 0.100 & 40 \\
+Laya ML (0-shot) & 0.590 & 0.293 & 0.675 & 0.302 & 0.025 & 0.025 & 0.175 & 40 \\
+Laya EN + RLCD FT (ours) & \textbf{0.913} & \textbf{0.903} & \textbf{0.875} & \textbf{0.122} & \textbf{0.375} & \textbf{0.750} & \textbf{0.850} & 40 \\
+Kev-0.8B & 0.821 & 0.553 & 0.675 & 0.238 & 0.100 & 0.100 & 0.375 & 40 \\
+Kev-4B & 0.869 & 0.732 & 0.650 & 0.254 & 0.275 & 0.325 & 0.500 & 40 \\
+Gemma~4 (generative) & 0.838 & 0.840 & 0.800 & 0.163 & 0.250 & 0.600 & 0.650 & 40 \\
+\bottomrule\end{tabular}}\end{table}

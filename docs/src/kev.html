@@ -1,0 +1,66 @@
+<div class="eyebrow">Upstream model · github.com/jaredpalmer/kev · Apache-2.0</div>
+<h1>Kev</h1>
+<p class="lede">A family of small open decision models built on Qwen3.5 and Qwen3.8 decoders. Kev turns a causal language model into a question-answerer: a LoRA adapter and a pointer head read the prefill, and nothing is generated. Its API matches TypeSafe's System One, the API behind the hosted "Jev" model.</p>
+
+<div class="facts">
+  <div><b>0.8B · 4B · 9B · 27B</b><span>sizes; 0.8B and 4B run on a Mac through MLX</span></div>
+  <div><b>0.817 / 0.838</b><span>Kev-4B accuracy on never-trained sources (dev / test)</span></div>
+  <div><b>18 ms</b><span>Kev-4B, 6 questions, H100 (upstream figure)</span></div>
+  <div><b>~$95</b><span>H100 time for the whole Qwen3.5 port</span></div>
+</div>
+
+<p>Source: the blog post <a href="https://themenonlab.blog/blog/kev-open-source-decision-model/">"Kev: an open-source decision model"</a>, the upstream README and model cards, and our clone at <code>upstream/kev</code>.</p>
+
+<h2>Architecture</h2>
+<figure>
+<svg viewBox="0 0 760 260" role="img" aria-label="Kev: the state is prefilled once and cached; each question runs as its own row reusing that cache; a pointer head scores option-end tokens against the decide token">
+  <rect class="box" x="10" y="20" width="230" height="44" rx="4"/>
+  <text x="125" y="47" font-size="13" text-anchor="middle">&lt;state&gt; note text</text>
+  <path class="line" d="M240 42 H290"/>
+  <rect class="box acc" x="290" y="20" width="200" height="44" rx="4"/>
+  <text x="390" y="47" font-size="13" text-anchor="middle">KV / recurrent cache (once)</text>
+  <path class="line" d="M390 64 V92 M390 92 H160 V110 M390 92 V110 M390 92 H620 V110"/>
+  <rect class="box" x="40" y="110" width="240" height="40" rx="4"/>
+  <text x="160" y="135" font-size="12.5" text-anchor="middle">&lt;q&gt; Q1 &lt;opt&gt;no&lt;/opt&gt;&lt;opt&gt;yes&lt;/opt&gt; &lt;decide&gt;</text>
+  <rect class="box" x="290" y="110" width="200" height="40" rx="4"/>
+  <text x="390" y="135" font-size="12.5" text-anchor="middle">&lt;q&gt; Q2 … &lt;decide&gt;</text>
+  <rect class="box" x="500" y="110" width="240" height="40" rx="4"/>
+  <text x="620" y="135" font-size="12.5" text-anchor="middle">&lt;q&gt; Q3 … &lt;decide&gt;</text>
+  <rect class="box" x="140" y="172" width="480" height="36" rx="4"/>
+  <text x="380" y="195" font-size="13" text-anchor="middle">Qwen3.5 (frozen) + rank-16 LoRA on attention, MLP and DeltaNet projections</text>
+  <path class="acc-line" d="M380 208 V226"/>
+  <text x="380" y="248" font-size="13" text-anchor="middle">pointer head: score(h[&lt;/opt&gt;ᵢ], h[&lt;decide&gt;]) → softmax ÷ T → probabilities</text>
+</svg>
+<figcaption>Qwen3.5 mixes attention with Gated DeltaNet layers, which are recurrent and ignore attention masks. So each question runs as its own row after the shared state cache. The questions are exactly isolated, and the note is paid for once.</figcaption>
+</figure>
+<ul>
+  <li><b>Pointer head.</b> It scores each option's <code>&lt;/opt&gt;</code> hidden state against the question's <code>&lt;decide&gt;</code> state. <code>&lt;decide&gt;</code> comes last, so it can see every option.</li>
+  <li><b>Isolation.</b> Asking questions together or one at a time gives the same probabilities (within 4e-6 in fp32). Option order can still matter within a question.</li>
+  <li><b>Calibration.</b> One fitted temperature per checkpoint: 0.8B 2.35, 4B 2.41, 9B 2.30, 27B 1.38. On new sources it takes Kev-9B's ECE from 0.106 to 0.042.</li>
+</ul>
+
+<h2>Training</h2>
+<p>The base set is <code>decision-v7</code>: 10,000 examples from ten public datasets (BoolQ, MNLI, AG News, Banking77, SST-5 and others), 896 generated policy examples and 1,680 rule-structure examples. Training runs for two epochs with cross-entropy, LoRA rank 16, and learning rate 1e-4 (0.8B) or 5e-5 (4B/9B). Short follow-up fine-tunes then add day-count and missing-evidence cases. The run log records about 110 controlled trials, which set the recipe. <code>kev.train --init_from jaredpalmer/kev-4b</code> fine-tunes from a released checkpoint, which keeps its general skill.</p>
+
+<h2>Reported results</h2>
+<div class="tbl"><table>
+<tr><th>Model</th><th>Base</th><th class="num">New sources acc</th><th class="num">Trained sources acc</th><th class="num">Brier (new)</th></tr>
+<tr><td>Kev-0.8B</td><td>Qwen3.5-0.8B-Base</td><td class="num">0.648 / 0.697</td><td class="num">0.827 / 0.838</td><td class="num">0.481 / 0.416</td></tr>
+<tr><td>Kev-4B</td><td>Qwen3.5-4B-Base</td><td class="num">0.817 / 0.838</td><td class="num">0.873 / 0.865</td><td class="num">0.269 / 0.242</td></tr>
+<tr><td>Kev-9B</td><td>Qwen3.5-9B-Base</td><td class="num">0.822 / 0.852</td><td class="num">0.872 / 0.874</td><td class="num">0.286 / 0.237</td></tr>
+<tr><td>Kev-27B</td><td>Qwen3.8-27B</td><td class="num">0.848 / 0.896</td><td class="num">0.866 / 0.870</td><td class="num">0.236 / 0.164</td></tr>
+<tr><td>Jev (hosted)</td><td>closed</td><td class="num">0.857 / –</td><td class="num">0.845 / –</td><td class="num">0.211 / –</td></tr>
+</table></div>
+<p>Each cell is dev / test. At a 5% error budget Kev can automate 0.45–0.57 of decisions, against Jev's 0.70. Known weaknesses: knowledge questions (MMLU 0.74 for 9B), day-precision date arithmetic (mitigated by <code>KEV_DATE_FACTS=1</code>), and states longer than the 384 training tokens.</p>
+
+<h2>Running it locally (Apple Silicon)</h2>
+<pre><code>cd upstream/kev && uv sync --extra serve
+uv run --extra serve python -m kev.serve --run jaredpalmer/kev-4b   --port 8009
+uv run --extra serve python -m kev.serve --run jaredpalmer/kev-0.8b --port 8019
+
+curl -s localhost:8009/v1/systemone -H 'content-type: application/json' -d '{
+  "state": "68 y/o man, 1 ppd x 40 years, quit 3 years ago.",
+  "model": "kev-latest",
+  "questions": {"py": {"type": "noul",
+    "instructions": "Does the patient have a smoking history of at least 20 pack-years?"}}}'</code></pre>
+<p>On our M1 Max (64 GB), Kev-4B serves in bf16 through MLX. The first run downloads about 8 GB of base weights. The server binds to 127.0.0.1, so notes never leave the machine. Set <code>KEV_API_KEY</code> to require a bearer token.</p>

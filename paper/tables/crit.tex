@@ -1,0 +1,10 @@
+\begin{table}[t]\centering\small
+\caption{Per-criterion accuracy on the lung-screening test set (500 notes, template family B).}\label{tab:crit}
+\begin{tabular}{lrrrr}\toprule Model & Age 50--80 & $\geq$20 pack-yr & Recency & Limiting \\ \midrule
+Laya EN (0-shot) & 0.444 & 0.592 & 0.486 & 0.562 \\
+Laya ML (0-shot) & 0.708 & 0.634 & 0.520 & 0.878 \\
+Laya EN + RLCD FT (ours) & 1.000 & 0.992 & 0.980 & 1.000 \\
+Kev-0.8B & 0.722 & 0.686 & 0.622 & 0.922 \\
+Kev-4B & 0.982 & 0.774 & 0.682 & 0.830 \\
+Gemma~4 (generative) & 0.968 & 0.840 & 0.888 & 0.976 \\
+\bottomrule\end{tabular}\end{table}

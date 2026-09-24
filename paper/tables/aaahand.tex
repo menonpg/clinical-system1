@@ -1,0 +1,12 @@
+\begin{table}[t]\centering\small
+\caption{AAA screening on the same 40 hand-written notes (10 eligible).}\label{tab:aaahand}
+\resizebox{\linewidth}{!}{\begin{tabular}{lrrrrrrrr}\toprule
+ & Direct & \multicolumn{5}{c}{Checklist-AND} & All crit. & \\ \cmidrule(lr){2-2}\cmidrule(lr){3-7}
+Model & AUROC & AUROC & Acc & Brier$\downarrow$ & Cov@5\% & Cov@10\% & correct & $n$ \\ \midrule
+Laya EN (0-shot) & 0.703 & 0.807 & 0.750 & 0.189 & 0.300 & 0.550 & 0.325 & 40 \\
+Laya ML (0-shot) & 0.580 & 0.380 & 0.675 & 0.271 & 0.050 & 0.050 & 0.075 & 40 \\
+Laya EN + RLCD FT (ours) & \textbf{1.000} & \textbf{1.000} & \textbf{0.975} & 0.024 & \textbf{1.000} & \textbf{1.000} & 0.925 & 40 \\
+Kev-0.8B & 0.637 & 0.917 & 0.800 & 0.123 & 0.600 & 0.825 & 0.550 & 40 \\
+Kev-4B & 0.950 & 0.990 & \textbf{0.975} & 0.034 & \textbf{1.000} & \textbf{1.000} & 0.925 & 40 \\
+Gemma~4 (generative) & 0.980 & \textbf{1.000} & \textbf{0.975} & \textbf{0.017} & \textbf{1.000} & \textbf{1.000} & \textbf{0.975} & 40 \\
+\bottomrule\end{tabular}}\end{table}

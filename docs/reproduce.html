@@ -1,0 +1,90 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Reproduce the study</title>
+<link rel="stylesheet" href="style.css">
+</head>
+<body>
+<div class="shell">
+<nav class="side" aria-label="Documentation">
+<a class="brand" href="index.html">Clinical<br>System One</a>
+<div class="grp">Project</div>
+<a href="index.html">Overview</a>
+<a href="app.html">App & demo</a>
+<a href="explorer.html">Screening Explorer</a>
+<div class="grp">Upstream models</div>
+<a href="laya.html">Laya</a>
+<a href="kev.html">Kev</a>
+<a href="compare.html">Laya vs Kev</a>
+<div class="grp">Clinical study</div>
+<a href="clinical.html">Study design</a>
+<a href="results.html">Results</a>
+<a href="reproduce.html" aria-current="page">Reproduce</a>
+</nav>
+<main>
+<div class="eyebrow">Clinical study · reproduce</div>
+<h1>Reproduce the study</h1>
+<p class="lede">Everything runs on one Apple Silicon laptop (we used an M1 Max with 64 GB), with no cloud calls after the first model download. A CUDA box works too: change <code>--device</code>.</p>
+
+<h2>1 · Environments</h2>
+<pre><code>brew install uv
+git clone https://github.com/NandhaKishorM/laya upstream/laya
+git clone https://github.com/jaredpalmer/kev  upstream/kev
+
+# Laya (Python 3.13)
+uv venv --python 3.13 upstream/laya/.venv
+uv pip install --python upstream/laya/.venv/bin/python -e "upstream/laya[serve]"
+
+# Kev (uv project, MLX on Apple Silicon)
+(cd upstream/kev && uv sync --extra serve)
+
+# Generative baseline
+ollama pull gemma4</code></pre>
+
+<h2>2 · Data</h2>
+<pre><code># TREC CT 2021 topics and qrels, then 600 balanced pairs with ClinicalTrials.gov criteria
+curl -sLo data/trec_ct/topics2021.xml https://www.trec-cds.org/topics2021.xml
+curl -sLo data/trec_ct/qrels2021.txt  https://trec.nist.gov/data/trials/qrels2021.txt
+python3 experiments/prep_trec.py
+
+# USPSTF vignettes are generated deterministically on first use (seeds fixed in run_checklists.SPLITS)</code></pre>
+
+<h2>3 · Serve Kev</h2>
+<pre><code>(cd upstream/kev && uv run --extra serve python -m kev.serve --run jaredpalmer/kev-4b   --port 8009) &amp;
+(cd upstream/kev && uv run --extra serve python -m kev.serve --run jaredpalmer/kev-0.8b --port 8019) &amp;</code></pre>
+
+<h2>4 · Run</h2>
+<pre><code>L=upstream/laya/.venv/bin/python
+$L experiments/run_checklists.py --backend laya          # E1, Laya EN zero-shot
+$L experiments/run_checklists.py --backend laya-ml       # E1, Laya multilingual
+python3 experiments/run_checklists.py --backend kev4b
+python3 experiments/run_checklists.py --backend kev08b
+python3 experiments/run_checklists.py --backend ollama:gemma4:latest
+
+$L experiments/run_trec.py --backend laya-ml8k           # E2
+python3 experiments/run_trec.py --backend kev4b
+python3 experiments/run_trec.py --backend ollama:gemma4:latest
+
+# E3: fine-tune Laya on template family A (MPS, ~1-2 h), evaluate on family B
+$L experiments/finetune_laya.py --epochs 2 --out runs/laya-clinical
+$L experiments/run_checklists.py --backend laya-ft:runs/laya-clinical
+
+$L experiments/latency.py                                # uncontended latency
+$L experiments/analyze.py                                # results/summary.json + summary.md
+$L experiments/figures.py                                # docs/figures/*.svg</code></pre>
+<p>Every runner appends to its results file and skips finished items, so an interrupted run resumes where it stopped.</p>
+
+<h2>Repository layout</h2>
+<pre><code>clinical_system1/   checklists.py  vignettes.py  backends.py  metrics.py
+experiments/        prep_trec.py  run_checklists.py  run_trec.py  finetune_laya.py  latency.py  analyze.py  figures.py
+data/               trec_ct/ (public)  vignettes/ (generated)
+docs/               this site (python docs/build.py)
+paper/              main.tex  refs.bib  main.pdf</code></pre>
+
+<footer>Research prototype, not a medical device. Code: Apache-2.0. Upstream: Laya (NandhaKishorM/laya), Kev (jaredpalmer/kev), both Apache-2.0.</footer>
+</main>
+</div>
+</body>
+</html>

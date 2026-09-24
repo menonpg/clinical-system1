@@ -1,0 +1,234 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Clinical System One</title>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Public+Sans:wght@400;500;600;700&family=Source+Serif+4:opsz,wght@8..60,600&family=JetBrains+Mono:wght@400;500&display=swap">
+<style>
+:root{--bg:#f5f7f7;--surface:#fff;--ink:#15292f;--ink-2:#4a5f65;--rule:#d3dcdc;--accent:#0c6b78;--accent-soft:#e0eff0;
+--good:#1f7a45;--good-soft:#e3f3e9;--bad:#a3322a;--bad-soft:#f8e4e2;--warn:#9a5a00;--warn-soft:#fbf0de;--code:#eef2f2;
+--sans:"Public Sans",-apple-system,"Segoe UI",Helvetica,Arial,sans-serif;--serif:"Source Serif 4",Georgia,serif;--mono:"JetBrains Mono",ui-monospace,Menlo,monospace;color-scheme:light}
+@media (prefers-color-scheme:dark){:root:not([data-theme="light"]){--bg:#0d1618;--surface:#132023;--ink:#dce7e6;--ink-2:#9db0b1;--rule:#28393c;--accent:#5bbcc8;--accent-soft:#16343a;
+--good:#5cc48a;--good-soft:#14301f;--bad:#e57a70;--bad-soft:#3a1c19;--warn:#e2a54a;--warn-soft:#2f2412;--code:#0f1c1f;color-scheme:dark}}
+:root[data-theme="dark"]{--bg:#0d1618;--surface:#132023;--ink:#dce7e6;--ink-2:#9db0b1;--rule:#28393c;--accent:#5bbcc8;--accent-soft:#16343a;
+--good:#5cc48a;--good-soft:#14301f;--bad:#e57a70;--bad-soft:#3a1c19;--warn:#e2a54a;--warn-soft:#2f2412;--code:#0f1c1f;color-scheme:dark}
+*{box-sizing:border-box}
+body{margin:0;background:var(--bg);color:var(--ink);font:15px/1.5 var(--sans);padding-inline:16px}
+header{max-width:1240px;margin:0 auto;padding-block:22px 10px;display:flex;flex-wrap:wrap;align-items:baseline;gap:6px 18px}
+header h1{font-family:var(--serif);font-size:26px;margin:0}
+header p{margin:0;color:var(--ink-2);font-size:14px}
+nav.tabs{max-width:1240px;margin:0 auto;display:flex;gap:4px;border-bottom:1px solid var(--rule)}
+nav.tabs button{background:none;border:0;border-bottom:2px solid transparent;padding:10px 14px;font:600 14px var(--sans);color:var(--ink-2);cursor:pointer}
+nav.tabs button[aria-selected="true"]{color:var(--accent);border-bottom-color:var(--accent)}
+main{max-width:1240px;margin:0 auto;padding-block:18px 60px}
+.grid{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1fr);gap:20px}
+@media (max-width:900px){.grid{grid-template-columns:minmax(0,1fr)}}
+.panel{background:var(--surface);border:1px solid var(--rule);border-radius:8px;padding:16px 18px;display:flex;flex-direction:column;gap:12px;min-width:0}
+label.f{display:flex;flex-direction:column;gap:4px;font-size:12px;font-weight:600;letter-spacing:.05em;text-transform:uppercase;color:var(--ink-2)}
+select,textarea,input[type=text],input[type=number]{font:14px var(--sans);color:var(--ink);background:var(--bg);border:1px solid var(--rule);border-radius:6px;padding:8px 10px;width:100%}
+textarea{font-family:var(--mono);font-size:13px;line-height:1.5;resize:vertical}
+.row{display:flex;flex-wrap:wrap;gap:10px;align-items:end}
+.row>*{flex:1 1 180px}
+button.primary{background:var(--accent);color:#fff;border:0;border-radius:6px;padding:10px 18px;font:600 15px var(--sans);cursor:pointer}
+@media (prefers-color-scheme:dark){:root:not([data-theme="light"]) button.primary{color:#0d1618}}
+:root[data-theme="dark"] button.primary{color:#0d1618}
+button.primary:disabled{opacity:.5;cursor:wait}
+button.ghost{background:none;border:1px solid var(--rule);color:var(--ink);border-radius:6px;padding:6px 10px;font:500 13px var(--sans);cursor:pointer}
+button:focus-visible,select:focus-visible,textarea:focus-visible,input:focus-visible{outline:2px solid var(--accent);outline-offset:1px}
+.chk{display:flex;gap:8px;align-items:center;font-size:14px}
+.crit-ed{display:grid;grid-template-columns:minmax(0,1fr) 118px 32px;gap:6px;align-items:start}
+.crit-ed textarea{font-family:var(--sans);font-size:13.5px;min-height:38px;field-sizing:content;resize:none}
+.muted{color:var(--ink-2);font-size:13px}
+.decision{border-radius:8px;padding:14px 16px;display:flex;flex-direction:column;gap:4px}
+.decision b{font-family:var(--serif);font-size:22px}
+.d-auto_eligible{background:var(--good-soft);color:var(--good)}
+.d-auto_ineligible{background:var(--bad-soft);color:var(--bad)}
+.d-review{background:var(--warn-soft);color:var(--warn)}
+.decision span{color:var(--ink);font-size:14px}
+.meter{position:relative;height:10px;border-radius:5px;background:var(--rule);overflow:hidden}
+.meter i{position:absolute;inset:0 auto 0 0;background:var(--accent);border-radius:5px}
+.crit{display:grid;grid-template-columns:22px minmax(0,1fr) 150px;gap:10px;align-items:center;padding:8px 0;border-top:1px solid var(--rule)}
+.crit .mark{width:20px;height:20px;border-radius:4px;display:grid;place-items:center;font-weight:700;font-size:13px}
+.crit .ok{background:var(--good-soft);color:var(--good)} .crit .no{background:var(--bad-soft);color:var(--bad)}
+.crit .q{font-size:14px} .crit .q small{display:block;color:var(--ink-2);font-family:var(--mono);font-size:11.5px}
+.bar{display:flex;flex-direction:column;gap:3px;font-size:12px;font-variant-numeric:tabular-nums;color:var(--ink-2)}
+.facts{font-family:var(--mono);font-size:12.5px;background:var(--code);border-radius:6px;padding:8px 10px}
+pre{font-family:var(--mono);font-size:12.5px;background:var(--code);border:1px solid var(--rule);border-radius:6px;padding:12px;overflow-x:auto;margin:0}
+.tbl{overflow-x:auto;border:1px solid var(--rule);border-radius:6px}
+table{border-collapse:collapse;width:100%;font-size:13.5px;font-variant-numeric:tabular-nums}
+th,td{padding:7px 10px;border-bottom:1px solid var(--rule);text-align:left;vertical-align:top}
+th{font-size:11.5px;text-transform:uppercase;letter-spacing:.05em;color:var(--ink-2);background:var(--accent-soft)}
+.pill{display:inline-block;border-radius:999px;padding:1px 9px;font-size:12px;font-weight:600}
+.err{background:var(--bad-soft);color:var(--bad);border-radius:6px;padding:10px 12px;font-size:14px}
+.status{display:flex;flex-wrap:wrap;gap:6px}
+.status span{font-size:12px;border:1px solid var(--rule);border-radius:999px;padding:2px 9px}
+.status span.on::before{content:"● ";color:var(--good)} .status span.off::before{content:"○ ";color:var(--ink-2)}
+.warnbox{background:var(--warn-soft);border-radius:6px;padding:8px 12px;font-size:13px}
+</style>
+</head>
+<body>
+<header>
+  <h1>Clinical System One</h1>
+  <p>Local checklist screening with calibrated decision models. Notes never leave this machine. Research prototype, not for patient care.</p>
+</header>
+<nav class="tabs" role="tablist">
+  <button role="tab" id="tab-screen" aria-selected="true" data-p="p-screen">Screen a note</button>
+  <button role="tab" id="tab-batch" aria-selected="false" data-p="p-batch">Batch</button>
+  <button role="tab" id="tab-build" aria-selected="false" data-p="p-build">Use in your code</button>
+</nav>
+<main>
+<section id="p-screen" class="grid">
+  <div class="panel">
+    <div class="row">
+      <label class="f">Checklist<select id="ck"></select></label>
+      <label class="f">Model<select id="model"></select></label>
+    </div>
+    <div class="status" id="mstatus"></div>
+    <div>
+      <div class="row" style="align-items:center;justify-content:space-between">
+        <span class="muted" style="flex:0 1 auto"><b>Criteria</b>: one yes/no question each. "Required" is the answer eligibility needs. Edit freely.</span>
+        <button class="ghost" id="addc" style="flex:0 0 auto">Add criterion</button>
+      </div>
+      <div id="crits" style="display:grid;gap:6px;margin-top:8px"></div>
+    </div>
+    <label class="f">Example note<select id="ex"><option value="">Choose a hand-written example…</option></select></label>
+    <label class="f">Clinical note<textarea id="note" rows="7"></textarea></label>
+    <div class="row">
+      <label class="chk" style="flex:0 1 auto"><input type="checkbox" id="facts"> Add computed smoking facts (pack-years, years since quitting)</label>
+      <label class="f" style="flex:0 0 150px">Error budget<select id="budget"><option value="5">≤ 5% errors</option><option value="10">≤ 10% errors</option></select></label>
+    </div>
+    <button class="primary" id="run">Screen note</button>
+  </div>
+  <div class="panel" id="out" aria-live="polite">
+    <p class="muted">Results appear here: a probability for each criterion, the combined eligibility, and whether the case is safe to auto-decide or needs a clinician.</p>
+  </div>
+</section>
+
+<section id="p-batch" hidden>
+  <div class="panel">
+    <p class="muted">Screens many notes with the checklist, model and settings from the first tab. Paste one note per line, or JSONL with a <code>text</code> field.</p>
+    <textarea id="bnotes" rows="8"></textarea>
+    <div class="row"><button class="ghost" id="bfill" style="flex:0 0 auto">Load all 40 examples</button><button class="primary" id="brun" style="flex:0 0 auto">Screen all</button><span class="muted" id="bsum"></span></div>
+    <div id="bout"></div>
+  </div>
+</section>
+
+<section id="p-build" hidden>
+  <div class="panel">
+    <p class="muted">The checklist on the first tab, as code. The same request works against a Kev server (TypeSafe System One API) or in-process with Laya.</p>
+    <label class="f">HTTP (Kev, or any System One endpoint)<pre id="code-http"></pre></label>
+    <label class="f">Python (this repo)<pre id="code-py"></pre></label>
+  </div>
+</section>
+</main>
+<script>
+const $ = s => document.querySelector(s);
+let CFG = null, CUR = null;
+const esc = s => String(s).replace(/[&<>"]/g, c => ({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c]));
+
+document.querySelectorAll("nav.tabs button").forEach(b => b.onclick = () => {
+  document.querySelectorAll("nav.tabs button").forEach(x => x.setAttribute("aria-selected", x === b));
+  ["p-screen","p-batch","p-build"].forEach(id => $("#"+id).hidden = id !== b.dataset.p);
+  if (b.dataset.p === "p-build") renderCode();
+});
+
+function renderCrits() {
+  const box = $("#crits"); box.innerHTML = "";
+  CUR.criteria.forEach((c, i) => {
+    const d = document.createElement("div"); d.className = "crit-ed";
+    d.innerHTML = `<textarea rows="2" aria-label="Question ${i+1}" id="cq${i}">${esc(c.question)}</textarea>
+      <select aria-label="Required answer ${i+1}" id="cr${i}"><option value="1">needs yes</option><option value="0">needs no</option></select>
+      <button class="ghost" title="Remove" aria-label="Remove criterion ${i+1}">×</button>`;
+    d.querySelector("select").value = c.required ? "1" : "0";
+    d.querySelector("textarea").oninput = e => c.question = e.target.value;
+    d.querySelector("select").onchange = e => c.required = e.target.value === "1";
+    d.querySelector("button").onclick = () => { CUR.criteria.splice(i, 1); CUR.key = "custom"; renderCrits(); };
+    box.appendChild(d);
+  });
+}
+function pickChecklist() {
+  const c = CFG.checklists.find(x => x.key === $("#ck").value);
+  CUR = c ? JSON.parse(JSON.stringify(c)) : {key: "custom", title: "Custom checklist", criteria: [{key: "c1", question: "", required: true}]};
+  renderCrits();
+}
+$("#addc").onclick = () => { CUR.key = "custom"; CUR.criteria.push({key: "c" + (CUR.criteria.length + 1), question: "", required: true}); renderCrits(); };
+
+async function boot() {
+  CFG = await (await fetch("/api/config")).json();
+  $("#ck").innerHTML = CFG.checklists.map(c => `<option value="${c.key}">${esc(c.title)}</option>`).join("") + `<option value="custom">Custom checklist…</option>`;
+  const firstOn = CFG.models.find(m => m.available);
+  $("#model").innerHTML = CFG.models.map(m => `<option value="${m.key}" ${m.available ? "" : "disabled"}>${esc(m.label)}${m.available ? "" : " (offline)"}</option>`).join("");
+  if (firstOn) $("#model").value = firstOn.key;
+  $("#mstatus").innerHTML = CFG.models.map(m => `<span class="${m.available ? "on" : "off"}" title="${esc(m.hint)}">${esc(m.label)}</span>`).join("");
+  $("#ex").innerHTML += CFG.examples.map((e, i) => `<option value="${i}">${e.id}: ${esc(e.text.slice(0, 70))}…</option>`).join("");
+  $("#ex").onchange = e => { if (e.target.value !== "") $("#note").value = CFG.examples[+e.target.value].text; };
+  $("#ck").onchange = pickChecklist; pickChecklist();
+  $("#note").value = CFG.examples[6].text;
+}
+
+function payload(extra) {
+  CUR.criteria.forEach((c, i) => { if (!c.key || CUR.key === "custom") c.key = "c" + (i + 1); });
+  return Object.assign({checklist: CUR, model: $("#model").value, facts: $("#facts").checked, budget: +$("#budget").value}, extra);
+}
+const LABEL = {auto_eligible: "Eligible: auto-decided", auto_ineligible: "Not eligible: auto-decided", review: "Send to clinician review"};
+
+$("#run").onclick = async () => {
+  const btn = $("#run"); btn.disabled = true; btn.textContent = "Screening…";
+  try {
+    const r = await fetch("/api/screen", {method: "POST", headers: {"content-type": "application/json"}, body: JSON.stringify(payload({note: $("#note").value}))});
+    const j = await r.json();
+    if (!r.ok) throw new Error(j.detail || r.statusText);
+    const why = j.decision === "review"
+      ? `Confidence ${(j.confidence*100).toFixed(0)}% is below the automation threshold ${(j.tau*100).toFixed(0)}%. Least certain: <code>${j.least_certain}</code>.`
+      : j.failed.length ? `Fails: ${j.failed.map(f => `<code>${f}</code>`).join(", ")}.` : "Every criterion met.";
+    $("#out").innerHTML = `
+      <div class="decision d-${j.decision}"><b>${LABEL[j.decision]}</b><span>${why}</span></div>
+      <div><div class="row" style="justify-content:space-between"><span class="muted" style="flex:0 1 auto">P(eligible) = product over criteria</span><b style="flex:0 0 auto;font-variant-numeric:tabular-nums">${(j.p_eligible*100).toFixed(1)}%</b></div>
+      <div class="meter" style="margin-top:4px"><i style="width:${(j.p_eligible*100).toFixed(1)}%"></i></div></div>
+      <div>${j.criteria.map(c => `<div class="crit"><div class="mark ${c.meets ? "ok" : "no"}" aria-label="${c.meets ? "met" : "not met"}">${c.meets ? "✓" : "✗"}</div>
+        <div class="q">${esc(c.question)}<small>${c.key} · needs ${c.required ? "yes" : "no"}</small></div>
+        <div class="bar"><span>P(yes) ${(c.p_yes*100).toFixed(1)}%</span><div class="meter"><i style="width:${(c.p_yes*100).toFixed(1)}%"></i></div></div></div>`).join("")}</div>
+      ${j.augmented ? `<div><span class="muted">Appended to the note before the model read it:</span><div class="facts">${esc(j.augmented)}</div></div>` : ""}
+      <p class="muted">Threshold: ${esc(j.tau_note)}. Model time ${j.latency_ms.toFixed(0)} ms.</p>
+      ${CUR.key === "custom" ? `<div class="warnbox">Custom checklist: this threshold has not been measured. Label 50 to 200 of your own notes and re-derive it (<code>experiments/operating_points.py</code>) before trusting auto-decisions.</div>` : ""}`;
+  } catch (e) {
+    $("#out").innerHTML = `<div class="err">${esc(e.message)}</div>`;
+  } finally { btn.disabled = false; btn.textContent = "Screen note"; }
+};
+
+$("#bfill").onclick = () => $("#bnotes").value = CFG.examples.map(e => e.text).join("\n");
+$("#brun").onclick = async () => {
+  const lines = $("#bnotes").value.split("\n").map(l => l.trim()).filter(Boolean)
+    .map(l => { try { const o = JSON.parse(l); return o.text || l; } catch { return l; } });
+  const btn = $("#brun"); btn.disabled = true; $("#bsum").textContent = `Screening ${lines.length} notes…`;
+  try {
+    const r = await fetch("/api/batch", {method: "POST", headers: {"content-type": "application/json"}, body: JSON.stringify(payload({notes: lines}))});
+    const j = await r.json(); if (!r.ok) throw new Error(j.detail || r.statusText);
+    const n = k => j.filter(x => x.decision === k).length;
+    $("#bsum").textContent = `${n("auto_eligible")} auto-eligible · ${n("auto_ineligible")} auto-ineligible · ${n("review")} to review`;
+    $("#bout").innerHTML = `<div class="tbl"><table><tr><th>#</th><th>Note</th><th>Decision</th><th>P(eligible)</th><th>Fails / least certain</th></tr>${
+      j.map((x, i) => `<tr><td>${i+1}</td><td>${esc(x.note.slice(0, 110))}…</td><td><span class="pill d-${x.decision}">${LABEL[x.decision]}</span></td>
+      <td>${(x.p_eligible*100).toFixed(1)}%</td><td><code>${x.decision === "review" ? x.least_certain : (x.failed.join(", ") || "none")}</code></td></tr>`).join("")}</table></div>`;
+  } catch (e) { $("#bout").innerHTML = `<div class="err">${esc(e.message)}</div>`; $("#bsum").textContent = ""; }
+  finally { btn.disabled = false; }
+};
+
+function renderCode() {
+  const qs = {}; CUR.criteria.forEach((c, i) => qs[c.key || "c" + (i+1)] = {type: "noul", instructions: c.question});
+  $("#code-http").textContent = `curl -s localhost:8009/v1/systemone -H 'content-type: application/json' -d '${JSON.stringify({state: "<note text>", model: "kev-latest", questions: qs}, null, 1)}'`;
+  $("#code-py").textContent = `from clinical_system1.checklists import Checklist, Criterion
+from clinical_system1.backends import KevBackend   # or LayaBackend / LayaFTBackend / OllamaBackend
+
+ck = Checklist(key="${CUR.key}", title=${JSON.stringify(CUR.title)}, source="", direct="", criteria=(
+${CUR.criteria.map((c, i) => `    Criterion(${JSON.stringify(c.key || "c" + (i+1))}, ${JSON.stringify(c.question)}, required=${c.required ? "True" : "False"}),`).join("\n")}
+))
+model = KevBackend(8009, "kev-4b")
+p = model.predict(note_text, ck.questions(include_direct=False))
+p_eligible = ck.aggregate(p)            # product rule
+print(p_eligible, ck.failed(p))         # audit trail: criteria that block eligibility`;
+}
+boot().catch(e => $("#out").innerHTML = `<div class="err">Could not reach the local server: ${esc(e.message)}</div>`);
+</script>
+</body>
+</html>

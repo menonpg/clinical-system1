@@ -1,0 +1,60 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Laya vs Kev</title>
+<link rel="stylesheet" href="style.css">
+</head>
+<body>
+<div class="shell">
+<nav class="side" aria-label="Documentation">
+<a class="brand" href="index.html">Clinical<br>System One</a>
+<div class="grp">Project</div>
+<a href="index.html">Overview</a>
+<a href="app.html">App & demo</a>
+<a href="explorer.html">Screening Explorer</a>
+<div class="grp">Upstream models</div>
+<a href="laya.html">Laya</a>
+<a href="kev.html">Kev</a>
+<a href="compare.html" aria-current="page">Laya vs Kev</a>
+<div class="grp">Clinical study</div>
+<a href="clinical.html">Study design</a>
+<a href="results.html">Results</a>
+<a href="reproduce.html">Reproduce</a>
+</nav>
+<main>
+<div class="eyebrow">Upstream study</div>
+<h1>Laya vs Kev</h1>
+<p class="lede">Both projects are open, locally runnable versions of the same idea: a model that answers typed questions about a text by prefill only, with calibrated probabilities. They reach it from opposite ends. Laya starts from a bidirectional encoder, Kev from a decoder LLM.</p>
+
+<div class="tbl"><table>
+<tr><th></th><th>Laya</th><th>Kev</th></tr>
+<tr><td>Backbone</td><td>ModernBERT-large / mmBERT-base encoder (322–421M)</td><td>Qwen3.5 / Qwen3.8 decoder (0.8–27B), frozen</td></tr>
+<tr><td>Trainable part</td><td>full encoder + 2-layer head</td><td>rank-16 LoRA + pointer head</td></tr>
+<tr><td>Readout</td><td>scorer over <code>[MASK]</code> option markers</td><td>option-end vs <code>&lt;decide&gt;</code> pointer</td></tr>
+<tr><td>Objective</td><td>RLCD: policy gradient on proper scoring rules + soft CE</td><td>cross-entropy</td></tr>
+<tr><td>Calibration</td><td>temperature per type (and per option count)</td><td>one temperature per checkpoint</td></tr>
+<tr><td>Context</td><td>512 (EN) · 1,024–8,192 (ML)</td><td>trained ≤384 state tokens; serves 8,192</td></tr>
+<tr><td>Languages</td><td>100+ with a script/language router</td><td>mostly English training data</td></tr>
+<tr><td>World knowledge</td><td>small; encoder-sized</td><td>inherits the Qwen base (the main reason 4B beats 0.8B)</td></tr>
+<tr><td>Speed (upstream)</td><td>33 ms / question on T4</td><td>18 ms / 6 questions on H100; 721 ms on M5 (4B)</td></tr>
+<tr><td>Zero-shot stance</td><td>"a fast base to specialise"</td><td>usable zero-shot; fine-tuning for your domain</td></tr>
+<tr><td>API</td><td>Python <code>Router</code>/<code>Agent</code>, Jev-compatible server, MCP</td><td>TypeSafe System One HTTP API, TypeSafe SDK works unchanged</td></tr>
+<tr><td>License</td><td>Apache-2.0</td><td>Apache-2.0 (Qwen bases Apache-2.0)</td></tr>
+</table></div>
+
+<h2>What that predicts for clinical checklists</h2>
+<ul>
+  <li><b>Arithmetic and thresholds</b> (pack-years = packs/day × years, "quit in 2012" against a 15-year window, age 50–80) need reasoning over numbers. A decoder base should do better than a 400M encoder zero-shot.</li>
+  <li><b>Throughput and footprint</b> favour Laya: it fits on a CPU-only hospital workstation.</li>
+  <li><b>Specialisation</b> favours Laya as well. Full fine-tuning of a 421M encoder takes minutes to an hour on a laptop GPU, while Kev's Mac training path is slow for Qwen3.5.</li>
+  <li><b>Both</b> give a probability per criterion. That enables the two things a clinical workflow needs: an audit trail per checklist item, and <em>selective automation</em>, where confident cases are auto-screened and the rest go to a clinician.</li>
+</ul>
+<p>The <a href="clinical.html">study design</a> tests these predictions directly, and the <a href="results.html">results</a> page reports what we found.</p>
+
+<footer>Research prototype, not a medical device. Code: Apache-2.0. Upstream: Laya (NandhaKishorM/laya), Kev (jaredpalmer/kev), both Apache-2.0.</footer>
+</main>
+</div>
+</body>
+</html>

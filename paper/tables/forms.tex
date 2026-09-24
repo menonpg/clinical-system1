@@ -1,0 +1,11 @@
+\begin{table}[t]\centering\small
+\caption{Pack-year criterion accuracy by how the note states smoking history.}\label{tab:forms}
+\begin{tabular}{lrrrr}\toprule Model & packs/day $\times$ yrs & cigarettes/day & stated pack-yrs & never smoker \\ \midrule
+Laya EN (0-shot) & 0.50 & 0.51 & 0.58 & 1.00 \\
+Laya ML (0-shot) & 0.57 & 0.60 & 0.61 & 0.90 \\
+Laya EN + RLCD FT (ours) & 0.99 & 0.99 & 1.00 & 1.00 \\
+Kev-0.8B & 0.62 & 0.65 & 0.66 & 0.96 \\
+Kev-4B & 0.72 & 0.72 & 0.78 & 1.00 \\
+Gemma~4 (generative) & 0.77 & 0.61 & 1.00 & 1.00 \\
+\midrule $n$ & 154 & 139 & 140 & 67 \\
+\bottomrule\end{tabular}\end{table}

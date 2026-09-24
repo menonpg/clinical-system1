@@ -1,0 +1,12 @@
+\begin{table}[t]\centering\small
+\caption{USPSTF 2021 lung cancer screening eligibility on 500 held-out-template notes (40\% eligible). Coverage = share of notes auto-decided at the given error budget. Bold = best.}\label{tab:lcs}
+\resizebox{\linewidth}{!}{\begin{tabular}{lrrrrrrrr}\toprule
+ & Direct & \multicolumn{5}{c}{Checklist-AND} & All crit. & \\ \cmidrule(lr){2-2}\cmidrule(lr){3-7}
+Model & AUROC & AUROC & Acc & Brier$\downarrow$ & Cov@5\% & Cov@10\% & correct & $n$ \\ \midrule
+Laya EN (0-shot) & 0.547 & 0.754 & 0.600 & 0.369 & 0.130 & 0.168 & 0.082 & 500 \\
+Laya ML (0-shot) & 0.523 & 0.693 & 0.608 & 0.284 & 0.000 & 0.130 & 0.242 & 500 \\
+Laya EN + RLCD FT (ours) & \textbf{0.998} & \textbf{0.999} & \textbf{0.992} & \textbf{0.008} & \textbf{1.000} & \textbf{1.000} & \textbf{0.972} & 500 \\
+Kev-0.8B & 0.726 & 0.728 & 0.602 & 0.260 & 0.268 & 0.316 & 0.288 & 500 \\
+Kev-4B & 0.872 & 0.877 & 0.648 & 0.244 & 0.424 & 0.492 & 0.402 & 500 \\
+Gemma~4 (generative) & 0.870 & 0.940 & 0.888 & 0.085 & 0.776 & 0.924 & 0.712 & 250 \\
+\bottomrule\end{tabular}}\end{table}

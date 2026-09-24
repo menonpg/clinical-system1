@@ -1,0 +1,35 @@
+<div class="eyebrow">The Menon Lab · research prototype · Apache-2.0</div>
+<h1>Clinical System One</h1>
+<p class="lede">Standard-of-care checklists answered by small, local, calibrated decision models. Each criterion becomes a typed yes/no question, the model answers from one prefill pass on a laptop, and a probability per criterion decides what can be automated and what goes to a clinician.</p>
+
+<div class="cards">
+  <a href="laya.html"><b>Laya</b><span>Encoder decision model (ModernBERT / mmBERT) trained with RL against proper scoring rules.</span></a>
+  <a href="kev.html"><b>Kev</b><span>Qwen3.5 + LoRA + pointer head, speaking TypeSafe's System One API.</span></a>
+  <a href="compare.html"><b>Laya vs Kev</b><span>Two routes to the same interface, and what each predicts for clinical text.</span></a>
+  <a href="clinical.html"><b>Study design</b><span>USPSTF lung and AAA checklists, 40 hand-written notes, TREC Clinical Trials 2021.</span></a>
+  <a href="results.html"><b>Results</b><span>Accuracy, calibration, share automatable at a 5% error budget, latency.</span></a>
+  <a href="reproduce.html"><b>Reproduce</b><span>Every command, from clone to figures.</span></a>
+</div>
+
+<h2>The idea in one request</h2>
+<pre><code>state = "Visit 2026. 68 M, CAD s/p PCI 2019. Ex-smoker, 45 pk-yr hx, quit after his MI in 2019."
+questions = {
+  "lcs_age":        {"type": "noul", "instructions": "Is the patient between 50 and 80 years old, inclusive?"},
+  "lcs_pack_years": {"type": "noul", "instructions": "Does the patient have a smoking history of at least 20 pack-years?"},
+  "lcs_recency":    {"type": "noul", "instructions": "Does the patient currently smoke, or did they quit 15 or fewer years ago?"},
+  "lcs_limiting":   {"type": "noul", "instructions": "Does the patient have a health problem that substantially limits life expectancy, ..."},
+}
+# one call, every answer is P(yes); eligibility = p_age * p_py * p_recency * (1 - p_limiting)
+# confident -> auto-screen; uncertain -> clinician queue; every "no" names the criterion that failed</code></pre>
+
+<h2>Where things live</h2>
+<div class="tbl"><table>
+<tr><th>Path</th><th>What</th></tr>
+<tr><td><code>clinical_system1/</code></td><td>checklist schemas, vignette generator, computed-facts hook, backends (Laya, Kev, Ollama), metrics</td></tr>
+<tr><td><code>experiments/</code></td><td>data prep, runners, local RLCD fine-tune, latency, analysis, figures</td></tr>
+<tr><td><code>data/vignettes/</code></td><td>generated test and train notes, and 40 hand-written notes</td></tr>
+<tr><td><code>paper/</code></td><td>arXiv manuscript (LaTeX + PDF)</td></tr>
+<tr><td><code>upstream/</code></td><td>clones of Laya and Kev (not redistributed)</td></tr>
+</table></div>
+
+<div class="note warn"><p><strong>Not for patient care.</strong> This is a research prototype. It is evaluated on synthetic notes and public benchmark text. It is not a medical device and has not been validated on real EHR data.</p></div>

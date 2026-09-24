@@ -1,0 +1,17 @@
+upstream/
+runs/
+.venv/
+__pycache__/
+*.pyc
+.DS_Store
+data/trec_ct/topics2021.xml
+data/trec_ct/qrels2021.txt
+data/trec_ct/trials/
+data/trec_ct/sample.jsonl
+experiments/results/*_server.log
+experiments/results/*_runs.log
+paper/*.aux
+paper/*.log
+paper/*.out
+experiments/results/*.log
+docs/figures/*.png.bak

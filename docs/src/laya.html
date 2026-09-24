@@ -1,0 +1,74 @@
+<div class="eyebrow">Upstream model · github.com/NandhaKishorM/laya · Apache-2.0</div>
+<h1>Laya</h1>
+<p class="lede">A multilingual, non-autoregressive decision engine. It reads a text and a set of typed questions, then returns one probability distribution per question from a single encoder pass. It writes no free text.</p>
+
+<div class="facts">
+  <div><b>421M / 322M</b><span>ModernBERT-large (EN) / mmBERT-base (multilingual)</span></div>
+  <div><b>512–8,192</b><span>tokens of context, depending on checkpoint</span></div>
+  <div><b>33 ms</b><span>one question on a T4 (upstream figure)</span></div>
+  <div><b>~1 GB</b><span>memory; runs on CPU, CUDA or Apple MPS</span></div>
+</div>
+
+<p>Source: the blog post <a href="https://themenonlab.blog/blog/laya-local-system-1-decision-model/">"Laya: a local System 1 decision model"</a>, the upstream README, and a reading of <code>laya/common.py</code> and <code>laya/agent.py</code> in our clone at <code>upstream/laya</code>.</p>
+
+<h2>What it does</h2>
+<p>Laya handles "System 1" decisions: fast, typed judgements over a piece of text, where you would otherwise prompt a chat model and parse its answer. There are three question types, shared with TypeSafe's System One API:</p>
+<div class="tbl"><table>
+<tr><th>Type</th><th>Criteria</th><th>Returns</th><th>Typical use</th></tr>
+<tr><td><code>noul</code></td><td>optional texts for true / false</td><td>P(yes)</td><td>"Does the note document ≥20 pack-years?"</td></tr>
+<tr><td><code>choice</code></td><td>named options with descriptions</td><td>distribution over options, top option, confidence</td><td>routing, intent, category</td></tr>
+<tr><td><code>score</code></td><td>ordered levels</td><td>distribution over levels, expected level</td><td>urgency, severity</td></tr>
+</table></div>
+
+<h2>Architecture</h2>
+<figure>
+<svg viewBox="0 0 760 250" role="img" aria-label="Laya architecture: question, option markers and state are packed into one sequence for a bidirectional encoder; a two-layer head scores the hidden state at each option marker">
+  <rect class="box" x="10" y="20" width="740" height="46" rx="4"/>
+  <text x="22" y="48" font-size="13">[CLS] noul question: Is the patient 50–80? [SEP]</text>
+  <rect class="box acc" x="340" y="28" width="150" height="30" rx="3"/>
+  <text x="350" y="48" font-size="13">[MASK] false: no …</text>
+  <rect class="box acc" x="496" y="28" width="140" height="30" rx="3"/>
+  <text x="506" y="48" font-size="13">[MASK] true: yes …</text>
+  <text x="646" y="48" font-size="13">[SEP] note [SEP]</text>
+  <path class="line" d="M380 70 V100"/>
+  <rect class="box" x="120" y="100" width="520" height="40" rx="4"/>
+  <text x="380" y="125" font-size="14" text-anchor="middle">Bidirectional encoder: ModernBERT-large (EN) or mmBERT-base</text>
+  <path class="line" d="M380 140 V160"/>
+  <rect class="box" x="200" y="160" width="360" height="34" rx="4"/>
+  <text x="380" y="182" font-size="13" text-anchor="middle">+ question-type embedding → 2-layer transformer head</text>
+  <path class="acc-line" d="M330 194 V214 M430 194 V214"/>
+  <text x="380" y="236" font-size="13" text-anchor="middle">scorer(h at each [MASK]) → softmax / temperature → P(false), P(true)</text>
+</svg>
+<figcaption>How <code>build_sequence</code> packs a request. Each option starts with a <code>[MASK]</code> marker. The head reads the hidden state at each marker, so a question with <i>k</i> options costs one pass, not <i>k</i> generations. Questions on the same state are batched as separate rows.</figcaption>
+</figure>
+<ul>
+  <li><b>Encoder.</b> The encoder is bidirectional, so the option markers can attend to the whole note and the note can attend to the question.</li>
+  <li><b>Head.</b> A question-type embedding is added to every token, then a 2-layer pre-norm transformer runs over the sequence. An MLP scorer reads each marker's hidden state and gives one logit per option. A small "act" head reads entropy and margin features. Upstream says it carries no usable signal yet (issue #185).</li>
+  <li><b>Router.</b> <code>laya.Router</code> detects the script and language in under 1 ms, in pure Python, and sends non-English text to the multilingual checkpoint. It exists because the English checkpoint is confidently wrong on other scripts: Khmer scores 0.000 at 0.952 confidence.</li>
+</ul>
+
+<h2>Training: RLCD</h2>
+<p>Laya is trained with reinforcement learning against strictly proper scoring rules, which upstream calls RLCD. For each question the trainer draws <i>G</i> = 4 noisy logit vectors around the model's output. It scores each one with a reward that combines log, spherical and ranked-probability scores (<code>proper_reward</code>), then takes a GRPO-style policy-gradient step on the group-normalised advantage, plus a soft cross-entropy term. Proper scoring rules reward reporting the true probability, and that is the argument for calibration. After training, one temperature per question type is fitted with LBFGS on a held-out slice.</p>
+
+<h2>Checkpoints and reported results</h2>
+<div class="tbl"><table>
+<tr><th>Checkpoint</th><th>Encoder</th><th class="num">Params</th><th class="num">Context</th><th>Use</th></tr>
+<tr><td><code>convaiinnovations/laya</code></td><td>ModernBERT-large</td><td class="num">421M</td><td class="num">512</td><td>English</td></tr>
+<tr><td><code>laya-multilingual</code></td><td>mmBERT-base</td><td class="num">322M</td><td class="num">1,024 (8,192)</td><td>100+ languages</td></tr>
+<tr><td><code>laya-typed-decisions</code></td><td>ModernBERT-large</td><td class="num">421M</td><td class="num">1,024</td><td>fine-tuned on typed-decisions</td></tr>
+</table></div>
+<p>Upstream's own numbers: on typed-decisions (2,000 decisions), the base English checkpoint scores 0.362 zero-shot, below the 0.461 majority baseline. The fine-tuned checkpoint scores 0.766 (Jev: 0.727). XNLI English scores 0.860. After temperature refitting, ECE falls from 0.466 to 0.081.</p>
+
+<div class="note warn"><p><strong>What upstream says about its limits, and why it matters here.</strong> "Laya is a fast base to specialise, not a zero-shot decision engine." The English <code>noul</code> can follow its <code>false</code>/<code>true</code> label text instead of the state (issue #156). Negation is unsafe (#377). The shipped checkpoints are over-confident, and <code>laya-multilingual</code> has no fitted temperatures. For clinical checklists, this predicts weak zero-shot results and makes the fine-tuning experiment essential. <a href="results.html">Our results</a> confirm both points.</p></div>
+
+<h2>Running it locally</h2>
+<pre><code>uv venv --python 3.13 upstream/laya/.venv
+uv pip install --python upstream/laya/.venv/bin/python -e "upstream/laya[serve]"
+
+from laya import Router
+router = Router(device="mps")            # Apple GPU; "cuda" or "cpu" also work
+r = router.predict(note_text, {
+    "lcs_age": {"type": "noul", "instructions": "Is the patient between 50 and 80 years old, inclusive?"},
+})
+r["answers"]["lcs_age"]["noul"]          # P(yes)</code></pre>
+<p>Other entry points: the <code>laya</code> CLI, <code>laya-serve</code> (a Jev-compatible HTTP server), an MCP server, LangChain tools, ONNX export, a TileLang CUDA fast path, and prediction hooks for PII redaction and audit logging.</p>

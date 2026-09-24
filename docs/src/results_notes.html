@@ -1,0 +1,22 @@
+<!-- lede -->
+<p class="lede">Zero-shot, Kev-4B is the strongest decision model and Laya is near chance. Two cheap local steps change that: an 85-minute fine-tune of Laya on synthetic notes, and a hook that states the smoking arithmetic. Together they give the fastest system in the study, and on hand-written notes the second most accurate. A threshold measured on synthetic notes badly overstates what is safe on real text.</p>
+<!-- lcs -->
+<p><b>Reading the table.</b> Laya zero-shot misjudges even the plain age question (44% right), which matches its authors' warning that the English <code>noul</code> head can follow its label text. Kev-4B is solid on age (98%) but weak on pack-years (77%) and recency (68%). After fine-tuning on template family A, Laya is near perfect on the unseen family-B templates. The two families share phrase vocabulary, so the hand-written notes below are the honest test.</p>
+<!-- crit -->
+<p>The arithmetic criteria (pack-years and years since quitting) are where every zero-shot model fails. That is what the computed-facts hook targets.</p>
+<!-- aaa -->
+<p>AAA needs no arithmetic: sex, age and ever-smoked are stated directly. Kev-4B and Gemma 4 solve it zero-shot, and the checklist-AND lifts Kev-0.8B from 0.74 to 0.93 AUROC.</p>
+<!-- hand -->
+<p><b>The honest test.</b> On the hand-written notes, fine-tuned Laya keeps AUROC 0.90, with every criterion right on 85% of notes (10% before fine-tuning). With the facts hook it reaches AUROC 0.96 and auto-decides 85% of notes at ≤5% error. Gemma 4 plus facts is the most accurate here (0.99) but about 10× slower. For zero-shot Kev the <i>direct</i> question beats the product (0.87 vs 0.73), because one criterion (recency) drags the product down. Choose which score to threshold on your own labelled notes.</p>
+<!-- trec -->
+<p>Telling eligible from excluded patients for a trial they are topically matched to is hard. Kev-4B (0.82–0.84) matches the 8B generative baseline (0.80) at roughly half the latency, but at most 7% of pairs can be auto-decided at ≤5% error. Use it to triage what a coordinator reads first, not to decide.</p>
+<!-- latency -->
+<p>At 124 ms per note, one laptop screens about 29,000 notes an hour, and no note leaves the machine. Ollama's prompt caching keeps Gemma 4 within about 10×.</p>
+<!-- takeaways -->
+<ul>
+<li><b>Write one yes/no question per criterion</b>, with thresholds, inclusivity and units spelled out.</li>
+<li><b>Start with Kev-4B</b> for zero-shot screening. For the best speed and accuracy, <b>fine-tune Laya on synthetic notes</b> from a seed generator (85 minutes on an M1 Max).</li>
+<li><b>State the arithmetic</b> with a deterministic hook. It was the single largest gain on hand-written notes.</li>
+<li><b>Keep the per-criterion audit</b>, and choose between the product and the direct question on your labelled set.</li>
+<li><b>Measure the automation threshold on your own notes.</b> A synthetic-note threshold overstated safe coverage by 2.6× (100% vs 38%).</li>
+</ul>

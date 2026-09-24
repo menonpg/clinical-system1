@@ -1,0 +1,68 @@
+<div class="eyebrow">Clinical study · design</div>
+<h1>Checklist study design</h1>
+<p class="lede">Can a local, prefill-only decision model take a public standard-of-care checklist, apply it to a clinical note, and say who qualifies? It has to be accurate enough, and calibrated well enough, that its confident answers can be trusted and its unsure ones handed to a clinician.</p>
+
+<div class="note warn"><p><strong>Scope.</strong> This is a research prototype evaluated on synthetic and public benchmark text. It is not a medical device, and it has not been validated on real EHR data or for any clinical use.</p></div>
+
+<h2>Why checklists</h2>
+<p>Much of standard-of-care qualification is a checklist applied to a chart: screening eligibility, trial prescreening, protocol order sets. Today a person does this by reading notes, or a rule engine does it over structured fields that are often missing. Smoking history is the classic case: it usually lives in free text. A decision model fits the task well:</p>
+<ul>
+  <li>each checklist item becomes one <code>noul</code> question with a calibrated P(yes);</li>
+  <li>the model never writes free text, so it cannot hallucinate a rationale, and its output is always well-formed;</li>
+  <li>it runs on the workstation, so no protected health information leaves the machine;</li>
+  <li>the per-item probabilities give both an audit trail ("excluded: pack-years &lt; 20") and a way to choose what to automate.</li>
+</ul>
+
+<h2>E1 · USPSTF screening checklists</h2>
+<h3>Lung cancer screening with LDCT (USPSTF 2021, Grade B)</h3>
+<ul class="check">
+  <li>Age 50–80 years <code>lcs_age</code></li>
+  <li>≥ 20 pack-year smoking history <code>lcs_pack_years</code></li>
+  <li>Currently smokes, or quit within the past 15 years <code>lcs_recency</code></li>
+  <li class="neg">No health problem that substantially limits life expectancy, and able and willing to have curative lung surgery <code>lcs_limiting</code> (must be <i>no</i>)</li>
+</ul>
+<h3>AAA ultrasound screening (USPSTF 2019, Grade B)</h3>
+<ul class="check">
+  <li>Male <code>aaa_male</code></li>
+  <li>Age 65–75 years <code>aaa_age</code></li>
+  <li>Has ever smoked <code>aaa_ever_smoked</code></li>
+</ul>
+
+<h3>Vignettes with exact ground truth</h3>
+<p>Each primary-care note is rendered from a structured seed (<code>clinical_system1/vignettes.py</code>), so every criterion label is exact. The generator deliberately varies how facts are stated:</p>
+<ul>
+  <li><b>Pack-years</b> appear as packs/day × years ("half a pack per day for 27 years"), cigarettes/day ("about 30 cigarettes a day for 55 years"), or a stated figure ("a 21 pack-year history").</li>
+  <li><b>Quitting</b> appears as "quit 12 years ago" or "quit in 2010", with the visit year given.</li>
+  <li><b>Distractors</b> include a spouse who smokes, secondhand exposure, a father with lung cancer, a brother with an AAA, and benign comorbidities.</li>
+  <li><b>Exclusions</b> include hospice, NYHA IV heart failure, oxygen-dependent end-stage COPD, advanced dementia, ESRD declining dialysis, and an explicit refusal of surgery.</li>
+  <li><b>Boundaries</b> are oversampled (ages 49/50, 80/81, 64/65, 75/76; pack-years 18–22; quit 14–16 years), and each test set is sampled to 40% eligible.</li>
+</ul>
+<p>There are two disjoint families of note templates. Family A (bullet and short-narrative formats) is used only for training and calibration. Family B (a problem-list "assessment note" and a longer narrative) is used only for testing: 500 lung and 400 AAA notes.</p>
+
+<h3>Two ways to read eligibility</h3>
+<ol>
+  <li><b>Direct.</b> One <code>noul</code> containing the whole recommendation: "Under the USPSTF 2021 … is this patient eligible?"</li>
+  <li><b>Checklist-AND.</b> One <code>noul</code> per criterion, combined as P(eligible) = ∏ pᵢ, using (1 − pᵢ) for criteria that must be <i>no</i>. This treats the criteria as independent given the note, which is a heuristic. In return, every negative decision names the criterion that failed.</li>
+</ol>
+
+<h2>E2 · Clinical-trial prescreening (TREC Clinical Trials 2021)</h2>
+<p>TREC CT 2021 pairs 75 public synthetic patient descriptions (5–10 sentence admission notes) with ClinicalTrials.gov trials. Assessors judged each pair eligible (2), excluded (1) or not relevant (0). We take the hard part of the task: <b>eligible vs excluded</b>, where the patient has the condition and the question is whether the criteria admit them. The sample is 600 judged pairs, 300 of each, stratified across all 75 topics. Eligibility text was fetched from the ClinicalTrials.gov v2 API, and each criteria block was capped at 6,000 characters. We ask three <code>noul</code> questions: a direct eligibility question, "meets inclusion", and "meets any exclusion". The decomposed score is P(inc) × (1 − P(exc)).</p>
+
+<h2>Models, all local</h2>
+<div class="tbl"><table>
+<tr><th>System</th><th>Kind</th><th>How P(yes) is obtained</th></tr>
+<tr><td>Laya (EN), Laya-multilingual</td><td>encoder decision model, 322–421M</td><td><code>noul</code> head, shipped temperatures</td></tr>
+<tr><td>Kev-0.8B, Kev-4B</td><td>decoder + LoRA + pointer head</td><td><code>noul</code> via <code>/v1/systemone</code> (MLX, bf16)</td></tr>
+<tr><td>Gemma 4 (Ollama)</td><td>generative LLM, about 8B</td><td>one prompt per question; softmax over the first-token log-probs of "Yes" and "No"</td></tr>
+<tr><td>Laya fine-tuned (ours)</td><td>Laya EN after RLCD on family-A notes</td><td><code>noul</code> head, temperature refit on a held-out family-A slice</td></tr>
+</table></div>
+<p>Reading the generative baseline's first-token probabilities, instead of asking it for a number, gives it the fairest calibration it can have. It also shows the cost difference: the LLM needs one decode step per question, while decision models answer every question from a shared prefill.</p>
+
+<h2>Metrics</h2>
+<ul>
+  <li><b>Discrimination:</b> accuracy, balanced accuracy, sensitivity, specificity, AUROC (95% bootstrap CI).</li>
+  <li><b>Calibration:</b> Brier score, 10-bin ECE.</li>
+  <li><b>Selective automation:</b> coverage at a 5% and 10% error budget. Cases are ranked by max(p, 1−p), and we report the largest share that can be decided automatically while keeping the error rate among them within budget. This is the number a screening program would plan staffing around.</li>
+  <li><b>Audit:</b> the share of notes on which <i>every</i> criterion is answered correctly.</li>
+  <li><b>Latency:</b> the median time per note for the whole checklist on the M1 Max. Accuracy runs shared the GPU, so a separate uncontended run measures latency.</li>
+</ul>

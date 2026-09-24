@@ -1,0 +1,195 @@
+<meta charset="utf-8">
+<title>Checklist Screening Explorer</title>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Public+Sans:wght@400;500;600;700&family=Source+Serif+4:opsz,wght@8..60,600&family=JetBrains+Mono:wght@400;500&display=swap">
+<style>
+:root{--bg:#f5f7f7;--surface:#fff;--ink:#15292f;--ink-2:#4a5f65;--rule:#d3dcdc;--accent:#0c6b78;--accent-soft:#e0eff0;
+--good:#1f7a45;--good-soft:#e3f3e9;--bad:#a3322a;--bad-soft:#f8e4e2;--warn:#9a5a00;--warn-soft:#fbf0de;--code:#eef2f2;--s1:#2a78d6;--s2:#eb6834;
+--sans:"Public Sans",-apple-system,"Segoe UI",Helvetica,Arial,sans-serif;--serif:"Source Serif 4",Georgia,serif;--mono:"JetBrains Mono",ui-monospace,Menlo,monospace}
+@media (prefers-color-scheme:dark){:root:not([data-theme="light"]){--bg:#0d1618;--surface:#132023;--ink:#dce7e6;--ink-2:#9db0b1;--rule:#28393c;--accent:#5bbcc8;--accent-soft:#16343a;
+--good:#5cc48a;--good-soft:#14301f;--bad:#e57a70;--bad-soft:#3a1c19;--warn:#e2a54a;--warn-soft:#2f2412;--code:#0f1c1f;--s1:#3987e5;--s2:#d95926;color-scheme:dark}}
+:root[data-theme="dark"]{--bg:#0d1618;--surface:#132023;--ink:#dce7e6;--ink-2:#9db0b1;--rule:#28393c;--accent:#5bbcc8;--accent-soft:#16343a;
+--good:#5cc48a;--good-soft:#14301f;--bad:#e57a70;--bad-soft:#3a1c19;--warn:#e2a54a;--warn-soft:#2f2412;--code:#0f1c1f;--s1:#3987e5;--s2:#d95926;color-scheme:dark}
+*{box-sizing:border-box}
+body{margin:0;background:var(--bg);color:var(--ink);font:15px/1.5 var(--sans);padding-inline:16px}
+.wrap{max-width:1200px;margin:0 auto;padding-block:24px 60px;display:flex;flex-direction:column;gap:18px}
+h1{font-family:var(--serif);font-size:clamp(26px,4vw,34px);margin:0;text-wrap:balance}
+.lede{color:var(--ink-2);max-width:72ch;margin:0}
+.controls{display:flex;flex-wrap:wrap;gap:12px;align-items:end}
+label.f{display:flex;flex-direction:column;gap:4px;font-size:11.5px;font-weight:600;letter-spacing:.06em;text-transform:uppercase;color:var(--ink-2);flex:1 1 200px}
+select{font:14px var(--sans);color:var(--ink);background:var(--surface);border:1px solid var(--rule);border-radius:6px;padding:8px 10px}
+select:focus-visible,input:focus-visible,button:focus-visible{outline:2px solid var(--accent);outline-offset:1px}
+.panel{background:var(--surface);border:1px solid var(--rule);border-radius:8px;padding:16px 18px;min-width:0}
+.top{display:grid;grid-template-columns:minmax(0,1.1fr) minmax(0,1fr);gap:18px}
+@media (max-width:880px){.top{grid-template-columns:minmax(0,1fr)}}
+.tiles{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:10px}
+@media (max-width:520px){.tiles{grid-template-columns:repeat(2,minmax(0,1fr))}}
+.tile{border-top:2px solid var(--rule);padding-top:6px}
+.tile b{display:block;font-family:var(--serif);font-size:26px;font-variant-numeric:tabular-nums}
+.tile span{font-size:12.5px;color:var(--ink-2)}
+.tile.g{border-color:var(--good)} .tile.r{border-color:var(--bad)} .tile.w{border-color:var(--warn)} .tile.e{border-color:var(--accent)}
+.slider{display:flex;flex-direction:column;gap:6px;margin-top:14px}
+.slider input{width:100%;accent-color:var(--accent)}
+.slider .lab{display:flex;justify-content:space-between;font-size:13px;color:var(--ink-2);font-variant-numeric:tabular-nums}
+svg text{font-family:var(--sans);fill:var(--ink-2);font-size:11px}
+.list{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1.1fr);gap:18px}
+@media (max-width:880px){.list{grid-template-columns:minmax(0,1fr)}}
+.notes{max-height:560px;overflow:auto;display:flex;flex-direction:column}
+.nrow{display:grid;grid-template-columns:52px minmax(0,1fr) auto;gap:10px;align-items:center;padding:8px 6px;border-bottom:1px solid var(--rule);cursor:pointer;background:none;border-left:0;border-right:0;border-top:0;text-align:left;font:inherit;color:inherit}
+.nrow:hover,.nrow[aria-selected="true"]{background:var(--accent-soft)}
+.nrow code{font-family:var(--mono);font-size:12px;color:var(--ink-2)}
+.nrow .t{font-size:13.5px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.pill{display:inline-block;border-radius:999px;padding:1px 9px;font-size:12px;font-weight:600;white-space:nowrap}
+.p-ae{background:var(--good-soft);color:var(--good)} .p-ai{background:var(--bad-soft);color:var(--bad)} .p-rv{background:var(--warn-soft);color:var(--warn)}
+.wrong{outline:2px solid var(--bad);outline-offset:1px}
+.detail h3{font-family:var(--serif);margin:0 0 6px;font-size:19px}
+.notetext{font-family:var(--mono);font-size:12.5px;background:var(--code);border-radius:6px;padding:10px 12px;white-space:pre-wrap}
+.crit{display:grid;grid-template-columns:minmax(0,1fr) 120px 70px;gap:10px;align-items:center;padding:8px 0;border-top:1px solid var(--rule);font-size:13.5px}
+.crit small{display:block;color:var(--ink-2);font-family:var(--mono);font-size:11px}
+.meter{height:8px;border-radius:4px;background:var(--rule);position:relative;overflow:hidden}
+.meter i{position:absolute;inset:0 auto 0 0;background:var(--accent);border-radius:4px}
+.truth{font-size:12px;font-weight:600;text-align:right}
+.truth.ok{color:var(--good)} .truth.no{color:var(--bad)}
+.muted{color:var(--ink-2);font-size:13px}
+.legend{display:flex;gap:14px;flex-wrap:wrap;font-size:12.5px;color:var(--ink-2)}
+.legend i{display:inline-block;width:14px;height:3px;vertical-align:middle;margin-right:5px;border-radius:2px}
+.warnbox{background:var(--warn-soft);border-radius:6px;padding:10px 14px;font-size:13.5px}
+@media (prefers-reduced-motion:reduce){*{transition:none!important}}
+</style>
+
+<div class="wrap">
+  <div>
+    <h1>Checklist Screening Explorer</h1>
+    <p class="lede">These are recorded answers from local decision models, and one generative LLM for comparison, run against USPSTF screening checklists. Each note gets a probability for every criterion, and the product of those probabilities is P(eligible). Drag the threshold to choose how confident the model must be before a note is decided automatically. Every note below that threshold goes to a clinician.</p>
+  </div>
+  <div class="warnbox">These notes are synthetic or hand-written, not real patients. This is a research prototype and not for clinical use.</div>
+
+  <div class="controls">
+    <label class="f">Notes<select id="ds"></select></label>
+    <label class="f">Checklist<select id="ck"></select></label>
+    <label class="f">Model<select id="model"></select></label>
+    <label class="f">Computed facts<select id="facts"><option value="0">Off</option><option value="1">On (pack-years, years since quitting)</option></select></label>
+  </div>
+
+  <div class="top">
+    <div class="panel">
+      <div class="tiles">
+        <div class="tile g"><b id="t-ae">–</b><span>auto: eligible</span></div>
+        <div class="tile r"><b id="t-ai">–</b><span>auto: not eligible</span></div>
+        <div class="tile w"><b id="t-rv">–</b><span>to clinician review</span></div>
+        <div class="tile e"><b id="t-err">–</b><span>errors among auto-decided</span></div>
+      </div>
+      <div class="slider">
+        <label for="thr" class="muted">Automation threshold: auto-decide when confidence max(P, 1−P) ≥ <b id="thr-v"></b></label>
+        <input type="range" id="thr" min="50" max="100" step="0.5" value="90">
+        <div class="lab"><span>50%: automate everything</span><span id="op"></span><span>100%: review everything</span></div>
+      </div>
+    </div>
+    <div class="panel">
+      <div class="legend"><span><i style="background:var(--s1)"></i>error rate among auto-decided</span><span><i style="background:var(--warn)"></i>5% budget</span><span><i style="background:var(--ink-2)"></i>your threshold</span></div>
+      <svg id="rc" viewBox="0 0 460 210" role="img" aria-label="Risk versus coverage curve for the selected model"></svg>
+      <p class="muted" id="auroc" style="margin:4px 0 0"></p>
+    </div>
+  </div>
+
+  <div class="list">
+    <div class="panel"><div class="muted" style="margin-bottom:6px">Notes, most confident first. A red outline marks an automated decision that is wrong.</div><div class="notes" id="notes" role="listbox" aria-label="Notes"></div></div>
+    <div class="panel detail" id="detail"></div>
+  </div>
+</div>
+
+<script>
+const D = __DATA__;
+const $ = s => document.querySelector(s);
+const esc = s => String(s).replace(/[&<>"]/g, c => ({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c]));
+let SEL = null;
+const CK = {lcs: D.checklists.lcs, aaa: D.checklists.aaa};
+
+$("#ds").innerHTML = Object.entries(D.dslabels).map(([k, v]) => `<option value="${k}">${esc(v)}</option>`).join("");
+$("#ck").innerHTML = Object.entries(CK).map(([k, v]) => `<option value="${k}">${esc(v.title)}</option>`).join("");
+
+function runKey() { return `${$("#ck").value}_${$("#ds").value}`; }
+function modelsFor() {
+  const runs = D.runs[runKey()] || {};
+  const facts = $("#facts").value === "1";
+  return Object.keys(runs).filter(m => m.endsWith("+facts") === facts);
+}
+function refreshModels() {
+  const keep = $("#model").value.replace("+facts", "");
+  const ms = modelsFor();
+  $("#model").innerHTML = ms.map(m => `<option value="${m}">${esc(D.names[m.replace("+facts", "")] || m)}</option>`).join("") || `<option value="">No runs for this combination</option>`;
+  const again = ms.find(m => m.replace("+facts", "") === keep);
+  if (again) $("#model").value = again;
+  render();
+}
+function rows() {
+  const ck = CK[$("#ck").value], run = (D.runs[runKey()] || {})[$("#model").value];
+  if (!run) return [];
+  return D.datasets[runKey()].notes.filter(n => run[n.id]).map(n => {
+    const p = run[n.id];
+    let P = 1; ck.criteria.forEach(c => P *= c.required ? p[c.key] : 1 - p[c.key]);
+    return {n, p, P, conf: Math.max(P, 1 - P), y: n.labels[ck.key + "_eligible"]};
+  }).sort((a, b) => b.conf - a.conf);
+}
+function render() {
+  const R = rows(), thr = +$("#thr").value / 100;
+  $("#thr-v").textContent = (thr * 100).toFixed(1) + "%";
+  const auto = R.filter(r => r.conf >= thr);
+  const ae = auto.filter(r => r.P >= .5).length, ai = auto.length - ae;
+  const err = auto.filter(r => (r.P >= .5) !== r.y).length;
+  $("#t-ae").textContent = ae; $("#t-ai").textContent = ai; $("#t-rv").textContent = R.length - auto.length;
+  $("#t-err").textContent = auto.length ? (100 * err / auto.length).toFixed(1) + "%" : "–";
+  // operating point: lowest threshold keeping cumulative error <= 5%
+  let best = null, e = 0;
+  R.forEach((r, i) => { e += ((r.P >= .5) !== r.y) ? 1 : 0; if (e / (i + 1) <= .05) best = {i, conf: r.conf}; });
+  $("#op").textContent = best ? `≤5% errors: threshold ${(best.conf * 100).toFixed(1)}% auto-decides ${Math.round(100 * (best.i + 1) / R.length)}%` : "no threshold reaches ≤5% errors";
+  drawRC(R, thr);
+  // AUROC
+  const pos = R.filter(r => r.y).map(r => r.P), neg = R.filter(r => !r.y).map(r => r.P);
+  let s = 0; pos.forEach(a => neg.forEach(b => s += a > b ? 1 : a === b ? .5 : 0));
+  $("#auroc").textContent = R.length ? `${R.length} notes · ${pos.length} eligible · AUROC of P(eligible) ${(s / (pos.length * neg.length)).toFixed(3)}` : "";
+  $("#notes").innerHTML = R.map((r, i) => {
+    const d = r.conf < thr ? ["rv", "review"] : r.P >= .5 ? ["ae", "eligible"] : ["ai", "not eligible"];
+    const wrong = r.conf >= thr && (r.P >= .5) !== r.y;
+    return `<button class="nrow" role="option" data-i="${i}" aria-selected="${SEL === r.n.id}"><code>${r.n.id}</code><span class="t">${esc(r.n.text)}</span>
+      <span class="pill p-${d[0]}${wrong ? " wrong" : ""}">${d[1]} · ${(r.P * 100).toFixed(0)}%</span></button>`;
+  }).join("");
+  document.querySelectorAll(".nrow").forEach(b => b.onclick = () => { SEL = R[+b.dataset.i].n.id; render(); });
+  const cur = R.find(r => r.n.id === SEL) || R[0];
+  if (cur) detail(cur, thr);
+}
+function detail(r, thr) {
+  const ck = CK[$("#ck").value];
+  const dec = r.conf < thr ? "Clinician review" : r.P >= .5 ? "Auto: eligible" : "Auto: not eligible";
+  $("#detail").innerHTML = `<h3>${r.n.id} · ${dec}</h3>
+    <p class="muted" style="margin:0 0 8px">P(eligible) ${(r.P * 100).toFixed(1)}% · confidence ${(r.conf * 100).toFixed(1)}% · truth: <b>${r.y ? "eligible" : "not eligible"}</b></p>
+    <div class="notetext">${esc(r.n.text)}${$("#facts").value === "1" && r.n.facts ? "\n" + esc(r.n.facts) : ""}</div>
+    ${ck.criteria.map(c => {
+      const py = r.p[c.key], truth = r.n.labels[c.key], ok = (py >= .5) === truth;
+      return `<div class="crit"><div>${esc(c.question)}<small>${c.key} · needs ${c.required ? "yes" : "no"}</small></div>
+        <div><div class="muted" style="font-size:12px">P(yes) ${(py * 100).toFixed(1)}%</div><div class="meter"><i style="width:${(py * 100).toFixed(1)}%"></i></div></div>
+        <div class="truth ${ok ? "ok" : "no"}">truth: ${truth ? "yes" : "no"}<br>${ok ? "✓ right" : "✗ wrong"}</div></div>`;
+    }).join("")}`;
+}
+function drawRC(R, thr) {
+  const W = 460, H = 210, L = 38, B = 26, T = 8, Rr = 10, pw = W - L - Rr, ph = H - T - B, ymax = .4;
+  const x = c => L + pw * c, y = v => T + ph * (1 - Math.min(v, ymax) / ymax);
+  let e = 0, pts = [];
+  R.forEach((r, i) => { e += ((r.P >= .5) !== r.y) ? 1 : 0; pts.push([(i + 1) / R.length, e / (i + 1)]); });
+  const covThr = R.filter(r => r.conf >= thr).length / (R.length || 1);
+  let g = "";
+  [0, .1, .2, .3, .4].forEach(t => g += `<line x1="${L}" x2="${W - Rr}" y1="${y(t)}" y2="${y(t)}" stroke="var(--rule)" stroke-dasharray="2 3"/><text x="${L - 6}" y="${y(t) + 4}" text-anchor="end">${t * 100}%</text>`);
+  [0, .25, .5, .75, 1].forEach(t => g += `<text x="${x(t)}" y="${H - 8}" text-anchor="middle">${t * 100}%</text>`);
+  g += `<line x1="${L}" x2="${W - Rr}" y1="${y(.05)}" y2="${y(.05)}" stroke="var(--warn)" stroke-dasharray="5 4"/>`;
+  g += `<polyline fill="none" stroke="var(--s1)" stroke-width="2" points="${pts.map(p => `${x(p[0]).toFixed(1)},${y(p[1]).toFixed(1)}`).join(" ")}"/>`;
+  g += `<line x1="${x(covThr)}" x2="${x(covThr)}" y1="${T}" y2="${T + ph}" stroke="var(--ink-2)" stroke-width="1.5"/>`;
+  g += `<text x="${Math.min(x(covThr) + 4, W - 110)}" y="${T + 12}" style="fill:var(--ink)">coverage ${(covThr * 100).toFixed(0)}%</text>`;
+  g += `<text x="${L + pw / 2}" y="${H - 8 + 0}" text-anchor="middle" dy="0" style="display:none"></text>`;
+  $("#rc").innerHTML = g;
+}
+["#ds", "#ck", "#facts"].forEach(s => $(s).onchange = () => { SEL = null; refreshModels(); });
+$("#model").onchange = () => render();
+$("#thr").oninput = render;
+$("#model").innerHTML = "";
+refreshModels();
+if ([...$("#model").options].some(o => o.value === "kev4b")) { $("#model").value = "kev4b"; render(); }
+</script>
