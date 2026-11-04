@@ -1,0 +1,66 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Decision models, November 2026</title>
+<link rel="stylesheet" href="style.css">
+</head>
+<body>
+<div class="shell">
+<nav class="side" aria-label="Documentation">
+<a class="brand" href="index.html">Clinical<br>System One</a>
+<div class="grp">Project</div>
+<a href="index.html">Overview</a>
+<a href="app.html">App & demo</a>
+<a href="explorer.html">Screening Explorer</a>
+<div class="grp">Upstream models</div>
+<a href="landscape.html" aria-current="page">The field, Nov 2026</a>
+<a href="laya.html">Laya</a>
+<a href="kev.html">Kev</a>
+<a href="compare.html">Laya vs Kev</a>
+<div class="grp">Clinical study</div>
+<a href="clinical.html">Study design</a>
+<a href="results.html">Results</a>
+<a href="reproduce.html">Reproduce</a>
+</nav>
+<main>
+<div class="eyebrow">Context · as of 4 November 2026</div>
+<h1>Decision models in November 2026</h1>
+<p class="lede">TypeSafe launched Jev and the System One API on 15 September 2026. Seven weeks later, OpenAI, Microsoft, Perplexity, Cloudflare, Liquid AI, IBM, H2O.ai, Google Chrome and more than a dozen independent groups had shipped decision models, and llama.cpp served the same API natively. This page summarises what changed and what it means for clinical checklists.</p>
+
+<h2>Who shipped what</h2>
+<div class="tbl"><table>
+<tr><th>Model</th><th>Organisation (date)</th><th>Weights</th><th>Size / base</th><th>Clinical data governance (as stated)</th><th class="num">Decision Index</th></tr>
+<tr><td>Jev 1.13 / 1.14</td><td>TypeSafe (15 Sep / 14 Oct)</td><td>hosted</td><td>undisclosed</td><td>ZDR for enterprise; no HIPAA/BAA found</td><td class="num">60.2</td></tr>
+<tr><td>Decisions API (gpt-6-luna)</td><td>OpenAI (GA 22 Oct)</td><td>hosted</td><td>undisclosed</td><td><b>ZDR and HIPAA for eligible customers</b></td><td class="num">–</td></tr>
+<tr><td>Microsoft-Decision-1</td><td>Microsoft (9 Oct)</td><td>hosted</td><td>Qwen3.5-9B</td><td>data zones; HIPAA not stated</td><td class="num">–</td></tr>
+<tr><td>d1 / d1-ultra</td><td>Liquid AI (late Sep)</td><td>hosted (small open d1 variants too)</td><td>undisclosed</td><td>none stated</td><td class="num">–</td></tr>
+<tr><td>pplx-decider v1.2</td><td>Perplexity (1–15 Oct)</td><td>open, Apache-2.0</td><td>27B (Qwen3.8)</td><td>hosted: ZDR by written agreement</td><td class="num">68.0</td></tr>
+<tr><td>Clef / Clef-flash</td><td>Cloudflare (1 Oct)</td><td>open, Apache-2.0</td><td>27B / 9B</td><td>Workers AI: zero retention</td><td class="num">54.9 / 44.4</td></tr>
+<tr><td>H2O-Lightning-4B</td><td>H2O.ai (2 Oct)</td><td>open, Apache-2.0</td><td>4B (Qwen3.5)</td><td>local</td><td class="num">–</td></tr>
+<tr><td>Decision 2.0 family</td><td>vLLM Semantic Router (28 Sep)</td><td>open, Apache-2.0</td><td>0.6B–27B</td><td>local</td><td class="num">–</td></tr>
+<tr><td>Granite Switch 4.1</td><td>IBM (14 Oct)</td><td>open, Apache-2.0</td><td>8B / 30B</td><td>local</td><td class="num">–</td></tr>
+<tr><td>Chrome Decisions API</td><td>Google Chrome (prototype, Oct)</td><td>on-device</td><td>undisclosed</td><td>inputs stay on the device</td><td class="num">–</td></tr>
+<tr><td>Kev 1.0</td><td>J. Palmer (Sep–Oct)</td><td>open, Apache-2.0</td><td>0.8B–27B</td><td>local</td><td class="num">59.6 (27B) · 34.9 (4B)</td></tr>
+<tr><td>Laya</td><td>ConvAI Innovations (18 Sep)</td><td>open, Apache-2.0</td><td>421M encoder</td><td>local</td><td class="num">9.2</td></tr>
+<tr><td>MedJev · MedDecider</td><td>Lee et al. · lion-ai (Oct)</td><td>open, non-commercial</td><td>4B–31B</td><td>local</td><td class="num">–</td></tr>
+<tr><td>CS1-4B</td><td>Zhang et al., Mahmood lab (19 Oct)</td><td>not released</td><td>4B</td><td>trained on 3.6M patients</td><td class="num">–</td></tr>
+</table></div>
+<p class="muted">Decision Index = Hugging Face Decision Index 0.4.1 Full score (chance-corrected; higher is better). "None stated" means we found no public statement, not that none exists. Sources are in the paper's bibliography.</p>
+
+<h2>What it means for this project</h2>
+<ul>
+  <li><b>One client drives them all.</b> Most open models speak the System One request shape, and llama.cpp serves Laya, Clef, H2O-Lightning and pplx-decider directly, so the app and the experiments needed one generic backend (<code>SystemOneBackend</code>) to add each new model.</li>
+  <li><b>Leaderboards disagree with clinical checklists.</b> Laya ranks 251st of 265 on the general Decision Index and is near chance zero-shot here too. Yet after an 85-minute fine-tune on a laptop it is among the best systems on our lung checklist. Measure on your own task.</li>
+  <li><b>Clinical prior work now exists.</b> Hosted Jev for trial criteria (He et al.), the institution-scale CS1-4B (Mahmood lab), and MedJev, whose finding that 50–200 labels fix patient-level calibration matches our Step 5.</li>
+  <li><b>Governance decides hosted vs local.</b> Only OpenAI states HIPAA eligibility. Local models need no agreement at all.</li>
+  <li><b>A priority dispute.</b> Laya's author has publicly claimed priority over Jev's architecture. We cite both and take no position.</li>
+</ul>
+<p>See <a href="results.html">Results</a> for how the newly released open models perform on the clinical checklists.</p>
+
+<footer>Research prototype, not a medical device. Code: Apache-2.0. Upstream: Laya (NandhaKishorM/laya), Kev (jaredpalmer/kev), both Apache-2.0.</footer>
+</main>
+</div>
+</body>
+</html>

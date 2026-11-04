@@ -9,6 +9,7 @@ PAGES = [  # (file, nav label, <title>, group)
     ("index.html", "Overview", "Clinical System One", "Project"),
     ("app.html", "App & demo", "Screening app", "Project"),
     ("explorer.html", "Screening Explorer", None, "Project"),
+    ("landscape.html", "The field, Nov 2026", "Decision models, November 2026", "Upstream models"),
     ("laya.html", "Laya", "Laya, studied", "Upstream models"),
     ("kev.html", "Kev", "Kev, studied", "Upstream models"),
     ("compare.html", "Laya vs Kev", "Laya vs Kev", "Upstream models"),

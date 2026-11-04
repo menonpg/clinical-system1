@@ -51,6 +51,9 @@ def make_backend(name: str):
         return B.LayaBackend(model="multilingual")
     if name.startswith("laya-ft:"):
         return B.LayaFTBackend(name.split(":", 1)[1])
+    if name.startswith("s1:"):  # any local System One server: s1:<port>:<label>
+        _, port, label = name.split(":", 2)
+        return B.SystemOneBackend(f"http://127.0.0.1:{port}", label)
     if name == "kev4b":
         return B.KevBackend(8009, "kev-4b")
     if name == "kev08b":
@@ -68,7 +71,7 @@ def main():
     ap.add_argument("--facts", action="store_true", help="append computed smoking arithmetic (clinical_system1.facts)")
     a = ap.parse_args()
     be = make_backend(a.backend)
-    tag = ("laya-ft" if a.backend.startswith("laya-ft:") else a.backend.replace(":", "_").replace("/", "_")) + ("+facts" if a.facts else "")
+    tag = (a.backend.split(":", 2)[2] if a.backend.startswith("s1:") else "laya-ft" if a.backend.startswith("laya-ft:") else a.backend.replace(":", "_").replace("/", "_")) + ("+facts" if a.facts else "")
     if a.facts:
         from clinical_system1.facts import augment
     for split in a.splits.split(","):

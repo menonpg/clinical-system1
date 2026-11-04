@@ -8,9 +8,9 @@ OUT = ROOT / "paper" / "tables"
 OUT.mkdir(exist_ok=True)
 S = json.loads((RES / "summary.json").read_text())
 LAT = json.loads((RES / "latency.json").read_text()) if (RES / "latency.json").exists() else {}
-ORDER = ["laya", "laya-ml", "laya-ft", "kev08b", "kev4b", "ollama_gemma4_latest"]
+ORDER = ["laya", "laya-ml", "laya-ft", "kev08b", "kev4b", "kev9b", "h2o4b", "clefflash", "kev27b", "ollama_gemma4_latest"]
 NAME = {"laya": "Laya EN (0-shot)", "laya-ml": "Laya ML (0-shot)", "laya-ft": "Laya EN + RLCD FT (ours)",
-        "kev08b": "Kev-0.8B", "kev4b": "Kev-4B", "ollama_gemma4_latest": "Gemma~4 (generative)", "laya-ml8k": "Laya ML (8k ctx)"}
+        "kev08b": "Kev-0.8B", "kev4b": "Kev-4B", "ollama_gemma4_latest": "Gemma~4 (generative)", "kev9b": "Kev-9B v2", "h2o4b": "H2O-Lightning-4B", "clefflash": "Cloudflare Clef-flash 9B", "kev27b": "Kev-27B v2 (Q4)", "laya-ml8k": "Laya ML (8k ctx)"}
 LATKEY = {"laya": "laya-mps", "laya-ft": "laya-ft", "kev08b": "kev08b", "kev4b": "kev4b", "ollama_gemma4_latest": "gemma4"}
 
 
@@ -71,7 +71,7 @@ def crit_table():
 
 def trec_table():
     d = S["e2"]
-    tags = [t for t in ["laya-ml8k", "kev08b", "kev4b", "ollama_gemma4_latest"] if t in d]
+    tags = [t for t in ["laya-ml8k", "kev08b", "kev4b", "kev9b", "h2o4b", "clefflash", "kev27b", "ollama_gemma4_latest"] if t in d]
     L = [r"\begin{table}[t]\centering\small",
          r"\caption{TREC Clinical Trials 2021, eligible vs.\ excluded (balanced; 95\% bootstrap CI for AUROC).}\label{tab:trec}",
          r"\begin{tabular}{lrrrrr}\toprule & \multicolumn{2}{c}{Direct} & \multicolumn{2}{c}{Inc.$\times$(1$-$Exc.)} & \\ \cmidrule(lr){2-3}\cmidrule(lr){4-5}",
@@ -106,7 +106,7 @@ def facts_table():
          r"\begin{tabular}{llrrrrr}\toprule Notes & Model & AUROC & Pack-yr acc & Recency acc & Cov@5\% & All crit. \\ \midrule"]
     for split, lab in (("lcs_test", "Template"), ("lcs_hand", "Hand-written")):
         d = norm(S["e1"].get(split, {}))
-        for t in ["kev08b", "kev4b", "laya", "laya-ft", "ollama_gemma4_latest"]:
+        for t in ["kev08b", "kev4b", "kev9b", "h2o4b", "clefflash", "kev27b", "laya", "laya-ft", "ollama_gemma4_latest"]:
             if t in d and t + "+facts" in d:
                 a, b = d[t], d[t + "+facts"]
                 f = lambda r: [r["checklist_and"]["auroc"], r["criteria"]["lcs_pack_years"]["accuracy"],

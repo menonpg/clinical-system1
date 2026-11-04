@@ -10,9 +10,9 @@ RES = ROOT / "experiments" / "results"
 FIG = ROOT / "docs" / "figures"
 S = json.loads((RES / "summary.json").read_text())
 LAT = json.loads((RES / "latency.json").read_text()) if (RES / "latency.json").exists() else {}
-ORDER = ["laya", "laya-ml", "laya-ft", "kev08b", "kev4b", "ollama_gemma4_latest"]
+ORDER = ["laya", "laya-ml", "laya-ft", "kev08b", "kev4b", "kev9b", "h2o4b", "clefflash", "kev27b", "ollama_gemma4_latest"]
 NAME = {"laya": "Laya EN · zero-shot", "laya-ml": "Laya multilingual · zero-shot", "laya-ft": "Laya EN · fine-tuned (ours)",
-        "kev08b": "Kev-0.8B", "kev4b": "Kev-4B", "ollama_gemma4_latest": "Gemma 4 · generative", "laya-ml8k": "Laya multilingual · 8k"}
+        "kev08b": "Kev-0.8B", "kev4b": "Kev-4B", "ollama_gemma4_latest": "Gemma 4 · generative", "kev9b": "Kev-9B v2", "h2o4b": "H2O-Lightning-4B", "clefflash": "Cloudflare Clef-flash 9B", "kev27b": "Kev-27B v2 (Q4)", "laya-ml8k": "Laya multilingual · 8k"}
 
 
 def norm(d):
@@ -44,7 +44,7 @@ def e1_table(split):
 
 def trec_table():
     d = S["e2"]
-    tags = [t for t in ["laya-ml8k", "kev08b", "kev4b", "ollama_gemma4_latest"] if t in d]
+    tags = [t for t in ["laya-ml8k", "kev08b", "kev4b", "kev9b", "h2o4b", "clefflash", "kev27b", "ollama_gemma4_latest"] if t in d]
     h = ("<div class='tbl'><table><tr><th>Model</th><th class='num'>Direct AUROC [95% CI]</th><th class='num'>Direct bal. acc</th>"
          "<th class='num'>Inc×(1−Exc) AUROC [95% CI]</th><th class='num'>Inc×(1−Exc) bal. acc</th><th class='num'>n</th></tr>")
     for t in tags:
@@ -61,7 +61,7 @@ def facts_table():
          "<th class='num'>Pack-years acc</th><th class='num'>Recency acc</th><th class='num'>Auto @5% err</th></tr>")
     for split, lab in (("lcs_test", "Template"), ("lcs_hand", "Hand-written")):
         d = norm(S["e1"].get(split, {}))
-        for t in ["kev08b", "kev4b", "laya", "laya-ft", "ollama_gemma4_latest"]:
+        for t in ["kev08b", "kev4b", "kev9b", "h2o4b", "clefflash", "kev27b", "laya", "laya-ft", "ollama_gemma4_latest"]:
             if t in d and t + "+facts" in d:
                 a, b = d[t], d[t + "+facts"]
                 g = lambda r, k: r["criteria"][k]["accuracy"]

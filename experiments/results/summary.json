@@ -1,6 +1,67 @@
 {
  "e1": {
   "aaa_hand": {
+   "h2o4b": {
+    "complete": true,
+    "n": 40,
+    "direct": {
+     "n": 40,
+     "prevalence": 0.25,
+     "accuracy": 0.9,
+     "balanced_accuracy": 0.9333333333333333,
+     "sensitivity": 1.0,
+     "specificity": 0.8666666666666667,
+     "auroc": 0.99,
+     "brier": 0.059169121407011804,
+     "ece": 0.1382917220663053,
+     "cov@5%": 0.9,
+     "cov@10%": 1.0
+    },
+    "checklist_and": {
+     "n": 40,
+     "prevalence": 0.25,
+     "accuracy": 1.0,
+     "balanced_accuracy": 1.0,
+     "sensitivity": 1.0,
+     "specificity": 1.0,
+     "auroc": 1.0,
+     "brier": 0.021890367403434037,
+     "ece": 0.10220205124098612,
+     "cov@5%": 1.0,
+     "cov@10%": 1.0
+    },
+    "direct_auroc_ci": [
+     0.956989247311828,
+     1.0
+    ],
+    "and_auroc_ci": [
+     1.0,
+     1.0
+    ],
+    "criteria": {
+     "aaa_male": {
+      "accuracy": 1.0,
+      "auroc": 1.0,
+      "prevalence": 0.55
+     },
+     "aaa_age": {
+      "accuracy": 0.975,
+      "auroc": 1.0,
+      "prevalence": 0.4
+     },
+     "aaa_ever_smoked": {
+      "accuracy": 1.0,
+      "auroc": 1.0,
+      "prevalence": 0.9
+     }
+    },
+    "all_criteria_correct": 0.975,
+    "surface_forms": {},
+    "latency": {
+     "p50_ms": 671.9064579810947,
+     "p90_ms": 744.258991908282
+    }
+   },
    "kev08b": {
     "complete": true,
     "n": 40,
@@ -121,6 +182,67 @@
     "latency": {
      "p50_ms": 383.8653750000276,
      "p90_ms": 395.28814160003094
+    }
+   },
+   "kev9b": {
+    "complete": true,
+    "n": 40,
+    "direct": {
+     "n": 40,
+     "prevalence": 0.25,
+     "accuracy": 0.85,
+     "balanced_accuracy": 0.7666666666666666,
+     "sensitivity": 0.6,
+     "specificity": 0.9333333333333333,
+     "auroc": 0.9333333333333333,
+     "brier": 0.10050529050000001,
+     "ece": 0.12204999999999999,
+     "cov@5%": 0.725,
+     "cov@10%": 0.875
+    },
+    "checklist_and": {
+     "n": 40,
+     "prevalence": 0.25,
+     "accuracy": 0.95,
+     "balanced_accuracy": 0.9333333333333333,
+     "sensitivity": 0.9,
+     "specificity": 0.9666666666666667,
+     "auroc": 0.9966666666666667,
+     "brier": 0.03168574506112015,
+     "ece": 0.09525920151932502,
+     "cov@5%": 1.0,
+     "cov@10%": 1.0
+    },
+    "direct_auroc_ci": [
+     0.8476117971550179,
+     0.9914666666666667
+    ],
+    "and_auroc_ci": [
+     0.9811912225705329,
+     1.0
+    ],
+    "criteria": {
+     "aaa_male": {
+      "accuracy": 1.0,
+      "auroc": 1.0,
+      "prevalence": 0.55
+     },
+     "aaa_age": {
+      "accuracy": 0.925,
+      "auroc": 1.0,
+      "prevalence": 0.4
+     },
+     "aaa_ever_smoked": {
+      "accuracy": 1.0,
+      "auroc": 1.0,
+      "prevalence": 0.9
+     }
+    },
+    "all_criteria_correct": 0.925,
+    "surface_forms": {},
+    "latency": {
+     "p50_ms": 872.0202918630093,
+     "p90_ms": 3503.553374996409
     }
    },
    "laya-ft": {
@@ -369,6 +491,67 @@
    }
   },
   "aaa_test": {
+   "h2o4b": {
+    "complete": true,
+    "n": 400,
+    "direct": {
+     "n": 400,
+     "prevalence": 0.4,
+     "accuracy": 0.9875,
+     "balanced_accuracy": 0.984375,
+     "sensitivity": 0.96875,
+     "specificity": 1.0,
+     "auroc": 0.9995052083333333,
+     "brier": 0.017518893649387985,
+     "ece": 0.09336457971695175,
+     "cov@5%": 1.0,
+     "cov@10%": 1.0
+    },
+    "checklist_and": {
+     "n": 400,
+     "prevalence": 0.4,
+     "accuracy": 0.9875,
+     "balanced_accuracy": 0.984375,
+     "sensitivity": 0.96875,
+     "specificity": 1.0,
+     "auroc": 1.0,
+     "brier": 0.02555353507786375,
+     "ece": 0.10932249796462534,
+     "cov@5%": 1.0,
+     "cov@10%": 1.0
+    },
+    "direct_auroc_ci": [
+     0.9984193115717015,
+     1.0
+    ],
+    "and_auroc_ci": [
+     1.0,
+     1.0
+    ],
+    "criteria": {
+     "aaa_male": {
+      "accuracy": 0.99,
+      "auroc": 1.0,
+      "prevalence": 0.6625
+     },
+     "aaa_age": {
+      "accuracy": 1.0,
+      "auroc": 1.0,
+      "prevalence": 0.4925
+     },
+     "aaa_ever_smoked": {
+      "accuracy": 1.0,
+      "auroc": 1.0,
+      "prevalence": 0.8825
+     }
+    },
+    "all_criteria_correct": 0.99,
+    "surface_forms": {},
+    "latency": {
+     "p50_ms": 766.7429998982698,
+     "p90_ms": 878.099200502038
+    }
+   },
    "kev08b": {
     "complete": true,
     "n": 400,
@@ -489,6 +672,67 @@
     "latency": {
      "p50_ms": 727.5662082247436,
      "p90_ms": 1146.931632980704
+    }
+   },
+   "kev9b": {
+    "complete": true,
+    "n": 400,
+    "direct": {
+     "n": 400,
+     "prevalence": 0.4,
+     "accuracy": 0.975,
+     "balanced_accuracy": 0.978125,
+     "sensitivity": 0.99375,
+     "specificity": 0.9625,
+     "auroc": 0.9975,
+     "brier": 0.024021591374999998,
+     "ece": 0.06266175000000002,
+     "cov@5%": 1.0,
+     "cov@10%": 1.0
+    },
+    "checklist_and": {
+     "n": 400,
+     "prevalence": 0.4,
+     "accuracy": 0.9825,
+     "balanced_accuracy": 0.9854166666666666,
+     "sensitivity": 1.0,
+     "specificity": 0.9708333333333333,
+     "auroc": 0.9981770833333333,
+     "brier": 0.018050601243070893,
+     "ece": 0.05195054019368246,
+     "cov@5%": 1.0,
+     "cov@10%": 1.0
+    },
+    "direct_auroc_ci": [
+     0.9942855157765383,
+     0.9995719589567246
+    ],
+    "and_auroc_ci": [
+     0.9955683551454829,
+     0.9998686965891609
+    ],
+    "criteria": {
+     "aaa_male": {
+      "accuracy": 1.0,
+      "auroc": 1.0,
+      "prevalence": 0.6625
+     },
+     "aaa_age": {
+      "accuracy": 0.965,
+      "auroc": 1.0,
+      "prevalence": 0.4925
+     },
+     "aaa_ever_smoked": {
+      "accuracy": 1.0,
+      "auroc": 1.0,
+      "prevalence": 0.8825
+     }
+    },
+    "all_criteria_correct": 0.965,
+    "surface_forms": {},
+    "latency": {
+     "p50_ms": 952.0417919848114,
+     "p90_ms": 994.2213167902082
     }
    },
    "laya-ft": {
@@ -737,6 +981,144 @@
    }
   },
   "lcs_hand": {
+   "h2o4b+facts": {
+    "complete": true,
+    "n": 40,
+    "direct": {
+     "n": 40,
+     "prevalence": 0.325,
+     "accuracy": 0.9,
+     "balanced_accuracy": 0.905982905982906,
+     "sensitivity": 0.9230769230769231,
+     "specificity": 0.8888888888888888,
+     "auroc": 0.9886039886039886,
+     "brier": 0.0671557653360318,
+     "ece": 0.16326586850719232,
+     "cov@5%": 0.9,
+     "cov@10%": 1.0
+    },
+    "checklist_and": {
+     "n": 40,
+     "prevalence": 0.325,
+     "accuracy": 0.75,
+     "balanced_accuracy": 0.6153846153846154,
+     "sensitivity": 0.23076923076923078,
+     "specificity": 1.0,
+     "auroc": 0.9487179487179487,
+     "brier": 0.14740206904679462,
+     "ece": 0.1710022927353328,
+     "cov@5%": 0.65,
+     "cov@10%": 0.7
+    },
+    "direct_auroc_ci": [
+     0.952903605015674,
+     1.0
+    ],
+    "and_auroc_ci": [
+     0.8612972527472527,
+     1.0
+    ],
+    "criteria": {
+     "lcs_age": {
+      "accuracy": 0.975,
+      "auroc": 1.0,
+      "prevalence": 0.9
+     },
+     "lcs_pack_years": {
+      "accuracy": 1.0,
+      "auroc": 1.0,
+      "prevalence": 0.725
+     },
+     "lcs_recency": {
+      "accuracy": 1.0,
+      "auroc": 1.0,
+      "prevalence": 0.725
+     },
+     "lcs_limiting": {
+      "accuracy": 0.75,
+      "auroc": 1.0,
+      "prevalence": 0.175
+     }
+    },
+    "all_criteria_correct": 0.725,
+    "surface_forms": {
+     "lcs_pack_years": {},
+     "lcs_recency": {}
+    },
+    "latency": {
+     "p50_ms": 1195.4029581975192,
+     "p90_ms": 1304.262033291161
+    }
+   },
+   "h2o4b": {
+    "complete": true,
+    "n": 40,
+    "direct": {
+     "n": 40,
+     "prevalence": 0.325,
+     "accuracy": 0.85,
+     "balanced_accuracy": 0.8888888888888888,
+     "sensitivity": 1.0,
+     "specificity": 0.7777777777777778,
+     "auroc": 0.8461538461538461,
+     "brier": 0.15660942949190404,
+     "ece": 0.21652858358281407,
+     "cov@5%": 0.075,
+     "cov@10%": 0.275
+    },
+    "checklist_and": {
+     "n": 40,
+     "prevalence": 0.325,
+     "accuracy": 0.675,
+     "balanced_accuracy": 0.5,
+     "sensitivity": 0.0,
+     "specificity": 1.0,
+     "auroc": 0.8319088319088319,
+     "brier": 0.20462936012736876,
+     "ece": 0.23097346790033166,
+     "cov@5%": 0.55,
+     "cov@10%": 0.575
+    },
+    "direct_auroc_ci": [
+     0.7099850427350427,
+     0.9615409207161125
+    ],
+    "and_auroc_ci": [
+     0.6896528040924593,
+     0.948735119047619
+    ],
+    "criteria": {
+     "lcs_age": {
+      "accuracy": 0.975,
+      "auroc": 1.0,
+      "prevalence": 0.9
+     },
+     "lcs_pack_years": {
+      "accuracy": 0.8,
+      "auroc": 0.8652037617554859,
+      "prevalence": 0.725
+     },
+     "lcs_recency": {
+      "accuracy": 0.825,
+      "auroc": 0.9435736677115988,
+      "prevalence": 0.725
+     },
+     "lcs_limiting": {
+      "accuracy": 0.95,
+      "auroc": 1.0,
+      "prevalence": 0.175
+     }
+    },
+    "all_criteria_correct": 0.575,
+    "surface_forms": {
+     "lcs_pack_years": {},
+     "lcs_recency": {}
+    },
+    "latency": {
+     "p50_ms": 958.1611671019346,
+     "p90_ms": 991.0705002490431
+    }
+   },
    "kev08b+facts": {
     "complete": true,
     "n": 40,
@@ -1011,6 +1393,144 @@
     "latency": {
      "p50_ms": 647.493250000025,
      "p90_ms": 657.8845581999531
+    }
+   },
+   "kev9b+facts": {
+    "complete": true,
+    "n": 40,
+    "direct": {
+     "n": 40,
+     "prevalence": 0.325,
+     "accuracy": 0.8,
+     "balanced_accuracy": 0.8319088319088319,
+     "sensitivity": 0.9230769230769231,
+     "specificity": 0.7407407407407407,
+     "auroc": 0.9344729344729344,
+     "brier": 0.14152925175,
+     "ece": 0.19989249999999997,
+     "cov@5%": 0.55,
+     "cov@10%": 0.625
+    },
+    "checklist_and": {
+     "n": 40,
+     "prevalence": 0.325,
+     "accuracy": 0.675,
+     "balanced_accuracy": 0.5,
+     "sensitivity": 0.0,
+     "specificity": 1.0,
+     "auroc": 0.8660968660968661,
+     "brier": 0.24944998557697007,
+     "ece": 0.26814293510096565,
+     "cov@5%": 0.5,
+     "cov@10%": 0.525
+    },
+    "direct_auroc_ci": [
+     0.8021623883928571,
+     1.0
+    ],
+    "and_auroc_ci": [
+     0.7382065716911764,
+     0.9583333333333334
+    ],
+    "criteria": {
+     "lcs_age": {
+      "accuracy": 1.0,
+      "auroc": 1.0,
+      "prevalence": 0.9
+     },
+     "lcs_pack_years": {
+      "accuracy": 1.0,
+      "auroc": 1.0,
+      "prevalence": 0.725
+     },
+     "lcs_recency": {
+      "accuracy": 0.675,
+      "auroc": 0.9780564263322884,
+      "prevalence": 0.725
+     },
+     "lcs_limiting": {
+      "accuracy": 0.35,
+      "auroc": 1.0,
+      "prevalence": 0.175
+     }
+    },
+    "all_criteria_correct": 0.25,
+    "surface_forms": {
+     "lcs_pack_years": {},
+     "lcs_recency": {}
+    },
+    "latency": {
+     "p50_ms": 1339.8233749903738,
+     "p90_ms": 1415.1466915383935
+    }
+   },
+   "kev9b": {
+    "complete": true,
+    "n": 40,
+    "direct": {
+     "n": 40,
+     "prevalence": 0.325,
+     "accuracy": 0.775,
+     "balanced_accuracy": 0.8133903133903134,
+     "sensitivity": 0.9230769230769231,
+     "specificity": 0.7037037037037037,
+     "auroc": 0.8803418803418803,
+     "brier": 0.1453545095,
+     "ece": 0.16895500000000002,
+     "cov@5%": 0.6,
+     "cov@10%": 0.65
+    },
+    "checklist_and": {
+     "n": 40,
+     "prevalence": 0.325,
+     "accuracy": 0.675,
+     "balanced_accuracy": 0.51994301994302,
+     "sensitivity": 0.07692307692307693,
+     "specificity": 0.9629629629629629,
+     "auroc": 0.7521367521367521,
+     "brier": 0.2585449015388213,
+     "ece": 0.24624839381091157,
+     "cov@5%": 0.25,
+     "cov@10%": 0.425
+    },
+    "direct_auroc_ci": [
+     0.7679558441558442,
+     0.9700331541218637
+    ],
+    "and_auroc_ci": [
+     0.5958962700650681,
+     0.8984432291666666
+    ],
+    "criteria": {
+     "lcs_age": {
+      "accuracy": 1.0,
+      "auroc": 1.0,
+      "prevalence": 0.9
+     },
+     "lcs_pack_years": {
+      "accuracy": 0.875,
+      "auroc": 0.9341692789968652,
+      "prevalence": 0.725
+     },
+     "lcs_recency": {
+      "accuracy": 0.675,
+      "auroc": 0.9843260188087775,
+      "prevalence": 0.725
+     },
+     "lcs_limiting": {
+      "accuracy": 0.35,
+      "auroc": 0.9956709956709957,
+      "prevalence": 0.175
+     }
+    },
+    "all_criteria_correct": 0.225,
+    "surface_forms": {
+     "lcs_pack_years": {},
+     "lcs_recency": {}
+    },
+    "latency": {
+     "p50_ms": 1552.2547499276698,
+     "p90_ms": 1625.8693339768797
     }
    },
    "laya+facts": {
@@ -1498,6 +2018,204 @@
    }
   },
   "lcs_test": {
+   "h2o4b+facts": {
+    "complete": true,
+    "n": 500,
+    "direct": {
+     "n": 500,
+     "prevalence": 0.4,
+     "accuracy": 0.964,
+     "balanced_accuracy": 0.9658333333333333,
+     "sensitivity": 0.975,
+     "specificity": 0.9566666666666667,
+     "auroc": 0.9875,
+     "brier": 0.03268498639637532,
+     "ece": 0.06561583161644595,
+     "cov@5%": 1.0,
+     "cov@10%": 1.0
+    },
+    "checklist_and": {
+     "n": 500,
+     "prevalence": 0.4,
+     "accuracy": 0.636,
+     "balanced_accuracy": 0.545,
+     "sensitivity": 0.09,
+     "specificity": 1.0,
+     "auroc": 0.96485,
+     "brier": 0.21023773794791356,
+     "ece": 0.27256801173329603,
+     "cov@5%": 0.416,
+     "cov@10%": 0.656
+    },
+    "direct_auroc_ci": [
+     0.9788096679041003,
+     0.9948280239951989
+    ],
+    "and_auroc_ci": [
+     0.9495130827046323,
+     0.979190519955406
+    ],
+    "criteria": {
+     "lcs_age": {
+      "accuracy": 0.952,
+      "auroc": 0.9776961220095222,
+      "prevalence": 0.718
+     },
+     "lcs_pack_years": {
+      "accuracy": 0.994,
+      "auroc": 1.0,
+      "prevalence": 0.53
+     },
+     "lcs_recency": {
+      "accuracy": 0.918,
+      "auroc": 0.9801731622046506,
+      "prevalence": 0.782
+     },
+     "lcs_limiting": {
+      "accuracy": 0.592,
+      "auroc": 0.9689772727272727,
+      "prevalence": 0.12
+     }
+    },
+    "all_criteria_correct": 0.522,
+    "surface_forms": {
+     "lcs_pack_years": {
+      "ppd": {
+       "n": 154,
+       "accuracy": 1.0
+      },
+      "never": {
+       "n": 67,
+       "accuracy": 1.0
+      },
+      "cigs": {
+       "n": 139,
+       "accuracy": 0.9784172661870504
+      },
+      "packyears": {
+       "n": 140,
+       "accuracy": 1.0
+      }
+     },
+     "lcs_recency": {
+      "year": {
+       "n": 118,
+       "accuracy": 0.8728813559322034
+      },
+      "n/a": {
+       "n": 299,
+       "accuracy": 1.0
+      },
+      "ago": {
+       "n": 83,
+       "accuracy": 0.6867469879518072
+      }
+     }
+    },
+    "latency": {
+     "p50_ms": 1236.95108294487,
+     "p90_ms": 1429.3076999485493
+    }
+   },
+   "h2o4b": {
+    "complete": true,
+    "n": 500,
+    "direct": {
+     "n": 500,
+     "prevalence": 0.4,
+     "accuracy": 0.874,
+     "balanced_accuracy": 0.8883333333333333,
+     "sensitivity": 0.96,
+     "specificity": 0.8166666666666667,
+     "auroc": 0.9292166666666667,
+     "brier": 0.09997660845909331,
+     "ece": 0.07676929244999746,
+     "cov@5%": 0.65,
+     "cov@10%": 0.902
+    },
+    "checklist_and": {
+     "n": 500,
+     "prevalence": 0.4,
+     "accuracy": 0.632,
+     "balanced_accuracy": 0.5408333333333334,
+     "sensitivity": 0.085,
+     "specificity": 0.9966666666666667,
+     "auroc": 0.9188166666666666,
+     "brier": 0.21927522824642454,
+     "ece": 0.2597236106511717,
+     "cov@5%": 0.37,
+     "cov@10%": 0.568
+    },
+    "direct_auroc_ci": [
+     0.9086135730814813,
+     0.9519531759041674
+    ],
+    "and_auroc_ci": [
+     0.8963015787014484,
+     0.9427438220181175
+    ],
+    "criteria": {
+     "lcs_age": {
+      "accuracy": 0.94,
+      "auroc": 0.9729943301922203,
+      "prevalence": 0.718
+     },
+     "lcs_pack_years": {
+      "accuracy": 0.876,
+      "auroc": 0.9779686872741871,
+      "prevalence": 0.53
+     },
+     "lcs_recency": {
+      "accuracy": 0.804,
+      "auroc": 0.9433820596447594,
+      "prevalence": 0.782
+     },
+     "lcs_limiting": {
+      "accuracy": 0.774,
+      "auroc": 0.9917803030303031,
+      "prevalence": 0.12
+     }
+    },
+    "all_criteria_correct": 0.508,
+    "surface_forms": {
+     "lcs_pack_years": {
+      "ppd": {
+       "n": 154,
+       "accuracy": 0.8311688311688312
+      },
+      "never": {
+       "n": 67,
+       "accuracy": 1.0
+      },
+      "cigs": {
+       "n": 139,
+       "accuracy": 0.7410071942446043
+      },
+      "packyears": {
+       "n": 140,
+       "accuracy": 1.0
+      }
+     },
+     "lcs_recency": {
+      "year": {
+       "n": 118,
+       "accuracy": 0.3728813559322034
+      },
+      "n/a": {
+       "n": 299,
+       "accuracy": 1.0
+      },
+      "ago": {
+       "n": 83,
+       "accuracy": 0.7108433734939759
+      }
+     }
+    },
+    "latency": {
+     "p50_ms": 1053.4247918985784,
+     "p90_ms": 1134.9537832196802
+    }
+   },
    "kev08b+facts": {
     "complete": true,
     "n": 500,
@@ -1892,6 +2610,204 @@
     "latency": {
      "p50_ms": 1122.0146249979734,
      "p90_ms": 3320.82327445969
+    }
+   },
+   "kev9b+facts": {
+    "complete": true,
+    "n": 500,
+    "direct": {
+     "n": 500,
+     "prevalence": 0.4,
+     "accuracy": 0.884,
+     "balanced_accuracy": 0.8925000000000001,
+     "sensitivity": 0.935,
+     "specificity": 0.85,
+     "auroc": 0.9739333333333333,
+     "brier": 0.0790768612,
+     "ece": 0.07765039999999997,
+     "cov@5%": 0.842,
+     "cov@10%": 0.96
+    },
+    "checklist_and": {
+     "n": 500,
+     "prevalence": 0.4,
+     "accuracy": 0.6,
+     "balanced_accuracy": 0.5,
+     "sensitivity": 0.0,
+     "specificity": 1.0,
+     "auroc": 0.9711666666666666,
+     "brier": 0.285952633158893,
+     "ece": 0.331945896130164,
+     "cov@5%": 0.546,
+     "cov@10%": 0.62
+    },
+    "direct_auroc_ci": [
+     0.9630742199199002,
+     0.9842987617855231
+    ],
+    "and_auroc_ci": [
+     0.9599243732271386,
+     0.9820482055757453
+    ],
+    "criteria": {
+     "lcs_age": {
+      "accuracy": 0.99,
+      "auroc": 0.9996641577273356,
+      "prevalence": 0.718
+     },
+     "lcs_pack_years": {
+      "accuracy": 0.998,
+      "auroc": 1.0,
+      "prevalence": 0.53
+     },
+     "lcs_recency": {
+      "accuracy": 0.684,
+      "auroc": 0.9802670170581196,
+      "prevalence": 0.782
+     },
+     "lcs_limiting": {
+      "accuracy": 0.304,
+      "auroc": 0.9769886363636363,
+      "prevalence": 0.12
+     }
+    },
+    "all_criteria_correct": 0.194,
+    "surface_forms": {
+     "lcs_pack_years": {
+      "ppd": {
+       "n": 154,
+       "accuracy": 0.9935064935064936
+      },
+      "never": {
+       "n": 67,
+       "accuracy": 1.0
+      },
+      "cigs": {
+       "n": 139,
+       "accuracy": 1.0
+      },
+      "packyears": {
+       "n": 140,
+       "accuracy": 1.0
+      }
+     },
+     "lcs_recency": {
+      "year": {
+       "n": 118,
+       "accuracy": 0.211864406779661
+      },
+      "n/a": {
+       "n": 299,
+       "accuracy": 1.0
+      },
+      "ago": {
+       "n": 83,
+       "accuracy": 0.21686746987951808
+      }
+     }
+    },
+    "latency": {
+     "p50_ms": 1392.954499926418,
+     "p90_ms": 1697.7607249747962
+    }
+   },
+   "kev9b": {
+    "complete": true,
+    "n": 500,
+    "direct": {
+     "n": 500,
+     "prevalence": 0.4,
+     "accuracy": 0.78,
+     "balanced_accuracy": 0.7949999999999999,
+     "sensitivity": 0.87,
+     "specificity": 0.72,
+     "auroc": 0.9026666666666666,
+     "brier": 0.14906982596,
+     "ece": 0.11425599999999994,
+     "cov@5%": 0.554,
+     "cov@10%": 0.684
+    },
+    "checklist_and": {
+     "n": 500,
+     "prevalence": 0.4,
+     "accuracy": 0.602,
+     "balanced_accuracy": 0.5025,
+     "sensitivity": 0.005,
+     "specificity": 1.0,
+     "auroc": 0.8903333333333333,
+     "brier": 0.289135203551621,
+     "ece": 0.3182847410629983,
+     "cov@5%": 0.39,
+     "cov@10%": 0.466
+    },
+    "direct_auroc_ci": [
+     0.8759457817664194,
+     0.9278962733025233
+    ],
+    "and_auroc_ci": [
+     0.8650603797384349,
+     0.9171353035907309
+    ],
+    "criteria": {
+     "lcs_age": {
+      "accuracy": 0.934,
+      "auroc": 0.9986467531954405,
+      "prevalence": 0.718
+     },
+     "lcs_pack_years": {
+      "accuracy": 0.886,
+      "auroc": 0.9785547972701726,
+      "prevalence": 0.53
+     },
+     "lcs_recency": {
+      "accuracy": 0.686,
+      "auroc": 0.9719491306694198,
+      "prevalence": 0.782
+     },
+     "lcs_limiting": {
+      "accuracy": 0.298,
+      "auroc": 0.9684848484848485,
+      "prevalence": 0.12
+     }
+    },
+    "all_criteria_correct": 0.166,
+    "surface_forms": {
+     "lcs_pack_years": {
+      "ppd": {
+       "n": 154,
+       "accuracy": 0.8116883116883117
+      },
+      "never": {
+       "n": 67,
+       "accuracy": 1.0
+      },
+      "cigs": {
+       "n": 139,
+       "accuracy": 0.8057553956834532
+      },
+      "packyears": {
+       "n": 140,
+       "accuracy": 0.9928571428571429
+      }
+     },
+     "lcs_recency": {
+      "year": {
+       "n": 118,
+       "accuracy": 0.211864406779661
+      },
+      "n/a": {
+       "n": 299,
+       "accuracy": 1.0
+      },
+      "ago": {
+       "n": 83,
+       "accuracy": 0.2289156626506024
+      }
+     }
+    },
+    "latency": {
+     "p50_ms": 1574.6982919517905,
+     "p90_ms": 1729.6882916707546
     }
    },
    "laya+facts": {
@@ -2590,6 +3506,48 @@
   }
  },
  "e2": {
+  "h2o4b": {
+   "n": 74,
+   "complete": false,
+   "direct": {
+    "n": 74,
+    "prevalence": 1.0,
+    "accuracy": 0.7297297297297297,
+    "balanced_accuracy": 0.36486486486486486,
+    "sensitivity": 0.7297297297297297,
+    "specificity": 0.0,
+    "auroc": NaN,
+    "brier": 0.20962601123162433,
+    "ece": 0.3506857112248132,
+    "cov@5%": 0.0,
+    "cov@10%": 0.0
+   },
+   "decomposed": {
+    "n": 74,
+    "prevalence": 1.0,
+    "accuracy": 0.6351351351351351,
+    "balanced_accuracy": 0.31756756756756754,
+    "sensitivity": 0.6351351351351351,
+    "specificity": 0.0,
+    "auroc": NaN,
+    "brier": 0.29720748468799135,
+    "ece": 0.4517122836143702,
+    "cov@5%": 0.0,
+    "cov@10%": 0.0
+   },
+   "direct_auroc_ci": [
+    NaN,
+    NaN
+   ],
+   "decomposed_auroc_ci": [
+    NaN,
+    NaN
+   ],
+   "latency": {
+    "p50_ms": 1938.5549579747021,
+    "p90_ms": 3497.312525426969
+   }
+  },
   "kev08b": {
    "n": 600,
    "complete": true,
@@ -2672,6 +3630,48 @@
    "latency": {
     "p50_ms": 799.6660410000231,
     "p90_ms": 1477.1829421999885
+   }
+  },
+  "kev9b": {
+   "n": 600,
+   "complete": true,
+   "direct": {
+    "n": 600,
+    "prevalence": 0.5,
+    "accuracy": 0.7316666666666667,
+    "balanced_accuracy": 0.7316666666666667,
+    "sensitivity": 0.5633333333333334,
+    "specificity": 0.9,
+    "auroc": 0.8333166666666667,
+    "brier": 0.20492346151666666,
+    "ece": 0.17128283333333338,
+    "cov@5%": 0.06666666666666667,
+    "cov@10%": 0.11666666666666667
+   },
+   "decomposed": {
+    "n": 600,
+    "prevalence": 0.5,
+    "accuracy": 0.7066666666666667,
+    "balanced_accuracy": 0.7066666666666667,
+    "sensitivity": 0.4666666666666667,
+    "specificity": 0.9466666666666667,
+    "auroc": 0.8358444444444444,
+    "brier": 0.23479621406497042,
+    "ece": 0.24577339296666662,
+    "cov@5%": 0.06666666666666667,
+    "cov@10%": 0.15166666666666667
+   },
+   "direct_auroc_ci": [
+    0.7997169454555698,
+    0.8642598612640835
+   ],
+   "decomposed_auroc_ci": [
+    0.8020038365574235,
+    0.8666925529500448
+   ],
+   "latency": {
+    "p50_ms": 1313.2225419394672,
+    "p90_ms": 2607.1437994949524
    }
   },
   "laya-ml8k": {

@@ -1,0 +1,22 @@
+\begin{table}[t]\centering\scriptsize
+\caption{The decision-model landscape on 4 November 2026 (selection). ``S1'' = TypeSafe's \texttt{/v1/systemone} request shape. ``Mac'' = runs on a 64\,GB Apple-silicon laptop. DI = independent Decision Index 0.4.1 Full score \citep{decision_index} (chance-corrected, higher is better; ``--'' = not listed). Data-governance column quotes only what the provider states publicly; ``none stated'' means we found no statement, not that none exists. $^\dagger$ = evaluated in this paper.}
+\label{tab:landscape}
+\resizebox{\linewidth}{!}{\begin{tabular}{llllllr}\toprule
+Model & Organisation (date) & Weights & Size / base & Interface & Clinical data governance (stated) & DI \\ \midrule
+Jev 1.13 / 1.14 & TypeSafe (15 Sep / 14 Oct) & hosted & undisclosed & S1 (origin) & ZDR for enterprise; no HIPAA/BAA found & 60.2 \\
+Decisions API (gpt-6-luna) & OpenAI (GA 22 Oct) & hosted & undisclosed & own (\texttt{/v1/decisions}) & ZDR and HIPAA for eligible customers & -- \\
+Microsoft-Decision-1 & Microsoft (9 Oct) & hosted & Qwen3.5-9B & S1 & data zones; HIPAA not stated & -- \\
+d1 / d1-ultra & Liquid AI (29 Sep) & hosted & undisclosed & S1 & none stated & -- \\
+pplx-decider v1.2 (27B) & Perplexity (1--15 Oct) & open, Apache-2.0 & Qwen3.8-27B & S1-style & ZDR by agreement (hosted) & 68.0 \\
+Clef / Clef-flash & Cloudflare (1 Oct) & open, Apache-2.0 & 27B / 9B (Qwen) & S1 & Workers AI: zero retention & 54.9 / 44.4 \\
+H2O-Lightning-4B & H2O.ai (2 Oct) & open, Apache-2.0 & Qwen3.5-4B & S1 (llama.cpp) & local & -- \\
+Decision 2.0 (Nox-4B \ldots{} Vega-27B) & vLLM Semantic Router (28 Sep) & open, Apache-2.0 & Qwen3.5/3.8 & S1 (llama.cpp) & local & -- \\
+Granite Switch 4.1 & IBM (14 Oct) & open, Apache-2.0 & 8B / 30B & chat + S1 & local & -- \\
+Decisions API (\texttt{DecisionModel}) & Google Chrome (prototype, Oct) & on-device & undisclosed & own web API & ``inputs not sent over the network'' & -- \\
+Kev 1.0 (0.8B--27B) & J.\ Palmer (Sep--Oct) & open, Apache-2.0 & Qwen3.5/3.8 + LoRA & S1 & local & 59.6 (27B), 40.9 (9B), 34.9 (4B) \\
+Laya & ConvAI Innovations (18 Sep) & open, Apache-2.0 & ModernBERT 421M & S1 & local & 9.2 \\
+\midrule
+MedJev & Lee et al.\ (26 Oct) & open, CC-BY-NC & 9B & S1 (shim) & local & -- \\
+CS1-4B & Zhang et al.\ / Mahmood lab (19 Oct) & not released & Decision 2.0 Nox-4B & S1 & trained on 3.6M patients & -- \\
+\bottomrule\end{tabular}}
+\end{table}

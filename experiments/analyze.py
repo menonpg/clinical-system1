@@ -20,7 +20,7 @@ from run_checklists import dataset  # noqa: E402
 RES = ROOT / "experiments" / "results"
 NAMES = {"laya": "Laya (EN, zero-shot)", "laya-ml": "Laya-multilingual (zero-shot)", "laya-ml8k": "Laya-multilingual 8k",
          "kev4b": "Kev-4B", "kev08b": "Kev-0.8B", "ollama_gemma4_latest": "Gemma 4 (generative, logprob)",
-         "laya-ft": "Laya fine-tuned (ours)", "kev08b-ft": "Kev-0.8B fine-tuned (ours)"}
+         "laya-ft": "Laya fine-tuned (ours)", "kev9b": "Kev-9B v2", "h2o4b": "H2O-Lightning-4B", "clefflash": "Cloudflare Clef-flash 9B", "kev27b": "Kev-27B v2 (Q4)", "kev08b-ft": "Kev-0.8B fine-tuned (ours)"}
 
 
 def load(f):

@@ -13,7 +13,7 @@ from run_checklists import dataset  # noqa: E402
 
 RES = ROOT / "experiments" / "results"
 NAMES = {"kev4b": "Kev-4B", "kev08b": "Kev-0.8B", "laya": "Laya EN (zero-shot)", "laya-ml": "Laya multilingual (zero-shot)",
-         "laya-ft": "Laya EN fine-tuned (ours)", "ollama_gemma4_latest": "Gemma 4 (generative LLM)"}
+         "laya-ft": "Laya EN fine-tuned (ours)", "ollama_gemma4_latest": "Gemma 4 (generative LLM)", "kev9b": "Kev-9B v2", "h2o4b": "H2O-Lightning-4B", "clefflash": "Cloudflare Clef-flash 9B", "kev27b": "Kev-27B v2 (Q4)"}
 DS = {"hand": "40 hand-written notes", "test": "500 / 400 template notes (held-out templates)"}
 
 

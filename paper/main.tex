@@ -7,69 +7,363 @@
 \lstset{basicstyle=\ttfamily\footnotesize,backgroundcolor=\color{codebg},frame=none,breaklines=true,columns=fullflexible,
   keepspaces=true,showstringspaces=false,xleftmargin=4pt,xrightmargin=4pt,aboveskip=6pt,belowskip=6pt}
 \newcommand{\step}[1]{\subsection*{#1}}
+\newcommand{\TODO}[1]{\textcolor{red}{[TODO: #1]}}
 \input{numbers.tex}
 
-\title{Checklists at the Speed of Prefill:\\[4pt]\large A Practical Recipe for Local, Calibrated Clinical Eligibility Screening with Open Decision Models}
+\title{Checklists at the Speed of Prefill:\\[4pt]\large Local, Calibrated Clinical Eligibility Screening with Open Decision Models}
 \author{Prahlad G. Menon\\\small The Menon Lab \quad \href{https://themenonlab.blog}{themenonlab.blog}}
-\date{September 2026}
+\date{November 2026 (revised; first version September 2026)}
 
 \begin{document}
 \maketitle
 
 \begin{abstract}
-Much of standard-of-care qualification means applying a published checklist to a free-text chart: screening eligibility, trial prescreening, protocol criteria.
-We show how to do this on one laptop with two open, prefill-only \emph{decision models}, Laya (a 421M-parameter encoder) and Kev (a Qwen3.5 decoder with a LoRA adapter and a pointer head).
-These models return a calibrated probability for each typed yes/no question instead of generating text.
-The paper is organised as a seven-step recipe that a practitioner can follow for their own checklist.
-The steps are: write one question per criterion; choose a model; add deterministic arithmetic facts; combine criteria into an auditable conjunctive score; derive an automation threshold from a small labelled set; fine-tune locally if needed; and deploy with human review of the uncertain cases.
-We test each step on the USPSTF 2021 lung-cancer and 2019 AAA screening recommendations, using 900 held-out-template notes with exact per-criterion labels and 40 hand-written notes, and on 600 eligible-versus-excluded pairs from TREC Clinical Trials 2021.
+\noindent\textbf{Objective.}
+Much of standard-of-care qualification means applying a published checklist to a free-text chart.
+We asked whether open \emph{decision models}, a new class of models that answer typed yes/no questions with calibrated probabilities from a single prefill pass, can do this on a single laptop. We also asked which practical steps make them safe to use.
+
+\noindent\textbf{Methods.}
+We encoded the USPSTF 2021 lung-cancer and 2019 abdominal aortic aneurysm screening recommendations as one question per criterion, and combined the answers into an auditable conjunctive eligibility score.
+We evaluated ten local systems on 900 synthetic notes from held-out templates with exact per-criterion labels, 40 hand-written notes, and 600 eligible-versus-excluded patient--trial pairs from TREC Clinical Trials 2021. Nine were decision models from four model families released between September and November 2026, and one was a generative large language model.
+We tested a deterministic hook that states smoking arithmetic, an 85-minute on-laptop fine-tune from synthetic notes, and automation thresholds chosen for a fixed error budget.
+
+\noindent\textbf{Results.}
 \AbstractResults{}
-Code, a local screening app, data generators, per-item predictions and documentation are released under Apache-2.0.
+
+\noindent\textbf{Conclusions.}
+Open decision models can screen checklists locally, with no note leaving the machine, provided that the arithmetic is made explicit, the model is specialised or chosen on the target task, and the automation threshold is measured on the practitioner's own notes.
+We release the pipeline as a step-by-step guide (Appendix~\ref{app:guide}), together with a local screening app, data generators and every prediction.
 \end{abstract}
 
+% =====================================================================
 \section{Introduction}
+\label{sec:intro}
 Clinical qualification work often reduces to a checklist over a chart.
 Examples are the USPSTF recommendation that adults aged 50--80 with a 20 pack-year smoking history be offered annual low-dose CT \citep{krist2021lung}, or a trial's inclusion and exclusion criteria.
 The facts these checklists need often exist only in narrative text, such as ``1 ppd since he was 18'' or ``quit after his MI in 2019''.
 Rule engines over structured fields miss them.
-Generative large language models can read them \citep{jin2024trialgpt,wornow2024zeroshot}, but they are hard to run on premises.
-Their free-text output has to be parsed, and their confidence is not calibrated by default.
+Generative large language models (LLMs) can read them \citep{jin2024trialgpt,wornow2024zeroshot}, but they are hard to run on premises.
+Their free-text output must be parsed, and their confidence is not calibrated by default.
 
-A newer class of open models answers \emph{typed questions} about a text in a single prefill pass: \emph{decision models}.
-Laya \citep{laya2026} and Kev \citep{kev2026} both expose the \texttt{noul} (yes/no), \texttt{choice} and \texttt{score} interface of TypeSafe's System One API \citep{typesafe2026}.
-They return a probability per question and generate no text.
-For a checklist this interface is the right shape: one question per criterion, one probability each, and a principled way to decide which cases are safe to automate.
+A new class of models answers \emph{typed questions} about a text in a single prefill pass: \emph{decision models}, also called System One models.
+TypeSafe introduced the category on 15 September 2026 with Jev and its \texttt{/v1/systemone} API \citep{typesafe2026,typesafe_jev_docs}.
+Within seven weeks it had become crowded:
+\begin{itemize}[nosep]
+\item OpenAI's Decisions API reached general availability \citep{openai_decisions}.
+\item Microsoft, Liquid AI and others launched hosted models \citep{ms_decision1,liquid_d1}.
+\item Perplexity, Cloudflare, H2O.ai, IBM and the vLLM project released open weights \citep{pplx_decider_v12,cloudflare_clef,h2o_lightning4b,granite_switch,vllmsr_decision2}.
+\item Chrome prototyped an in-browser Decisions API \citep{chrome_decisions}, and llama.cpp added a native server for the API \citep{llamacpp_systemone}.
+\item Independent leaderboards appeared \citep{decision_index,jevbench,aa_decision_index}, together with a first wave of clinical evaluations (\S\ref{sec:related}).
+\end{itemize}
+For a checklist the interface has the right shape: one question per criterion, one probability for each, and a principled basis for deciding which cases are safe to automate.
 
-This paper is written to be \emph{followed}.
-Section~\ref{sec:recipe} is a seven-step recipe with code, which applies to any checklist.
-Section~\ref{sec:eval} tests each step on two USPSTF checklists and a public trial-matching benchmark, entirely on one Apple M1 Max laptop.
-Section~\ref{sec:results} reports what worked, what did not, and how much each step contributes.
-Everything, including a point-and-click local screening app, is released (Section~\ref{sec:release}).
+The field now offers dozens of models but no answer to the question a clinical team actually faces: \emph{how do we run our own checklist safely, on our own hardware, without sending notes anywhere?}
+This paper addresses that question. Our contributions are:
+\begin{enumerate}[nosep]
+\item a screening pipeline that turns any public checklist into per-criterion decision questions with an auditable conjunctive score, written up as a step-by-step practitioner guide (Appendix~\ref{app:guide});
+\item a controlled benchmark with exact per-criterion labels, held-out templates and hand-written notes, on which ten local systems are compared;
+\item evidence that two inexpensive steps, a deterministic arithmetic hook and a short on-laptop fine-tune from synthetic notes, change which models are usable;
+\item a measured demonstration that automation thresholds do not transfer from synthetic to hand-written notes;
+\item an open-source release, including a local screening app, in which no note leaves the machine.
+\end{enumerate}
 
-\section{Decision models in one page}
-\label{sec:models}
-\paragraph{Laya}\citep{laya2026} packs a question, its options (each introduced by a \texttt{[MASK]} marker) and the state into one sequence for a bidirectional encoder: ModernBERT-large \citep{warner2024modernbert}, 421M parameters, English; or mmBERT-base, 322M, multilingual.
-A two-layer transformer head scores the hidden state at each marker.
-Training (``RLCD'') combines a GRPO-style group policy gradient \citep{shao2024grpo} on a reward built from strictly proper scoring rules \citep{gneiting2007scoring} with soft cross-entropy, and is followed by temperature scaling \citep{guo2017calibration}.
-Its authors describe the released checkpoints as ``a fast base to specialise, not a zero-shot decision engine''.
-\paragraph{Kev}\citep{kev2026} freezes a Qwen3.5 base (0.8B--9B) and trains a rank-16 LoRA \citep{hu2022lora} and a pointer head.
-The head scores each option's closing token against a final \texttt{<decide>} token.
-The note is prefilled once, and each question runs as an isolated row that reuses the cache.
-One temperature per checkpoint is fitted on held-out data.
-A Kev server speaks the System One HTTP API, so any client for that API works unchanged.
-\paragraph{Why this matters clinically.}
-Both models run on a workstation, so no protected health information leaves it.
-They answer from prefill only, so the cost of a decision does not grow with an explanation.
-And their probabilities can be thresholded, which is what makes selective automation possible \citep{geifman2017selective}.
+% =====================================================================
+\section{Background and related work}
+\label{sec:related}
 
-\section{The recipe}
-\label{sec:recipe}
-We use lung-cancer screening as the running example.
-Each step names the file in the release that implements it.
+\subsection{Decision models}
+A decision model reads a \emph{state} (a note, a JSON record) and a set of questions whose answers are declared up front, and returns a probability for every answer instead of generated text.
+The System One API defines three question types: \texttt{noul} (yes/no), \texttt{choice} and \texttt{score} \citep{typesafe2026}.
+The two open designs we study first span the range of architectures.
+\textbf{Laya} \citep{laya2026} packs a question, its options (each introduced by a \texttt{[MASK]} marker) and the state into one sequence for a bidirectional encoder (ModernBERT-large, 421M parameters; \citealp{warner2024modernbert}), and a two-layer head scores each marker.
+It is trained (``RLCD'') with a GRPO-style policy gradient \citep{shao2024grpo} on strictly proper scoring rules \citep{gneiting2007scoring} plus soft cross-entropy, and is then temperature-scaled \citep{guo2017calibration}.
+\textbf{Kev} \citep{kev2026} freezes a Qwen3.5 base and trains a rank-16 LoRA \citep{hu2022lora} and a pointer head, which scores each option's closing token against a final \texttt{<decide>} token. The note is prefilled once, and each question reuses the cache.
+Most open entrants since then (Table~\ref{tab:landscape}) follow Kev's pattern: a 4B--31B Qwen or Gemma decoder with a readout head, one temperature, and the System One request shape.
+Because they share that request shape, one client can drive almost all of them.
+
+\input{tables/landscape.tex}
+
+\subsection{Independent benchmarks}
+On the Hugging Face Decision Index \citep{decision_index}, the best open models (71--72) now score above Jev 1.14 (60.2).
+Kev-27B (59.6) is level with Jev; Kev-4B scores 34.9, and Laya scores 9.2 and ranks 251st of 265.
+JevBench \citep{jevbench} and the Artificial Analysis Decision Index \citep{aa_decision_index} give the same broad ordering, and find that decision models remain overconfident on knowledge questions.
+These boards measure general-purpose decisions, not clinical checklists.
+Laya's author has publicly claimed priority over Jev's architecture \citep{tomshw_dispute}; we cite both and take no position.
+
+\subsection{Clinical eligibility from text}
+Cohort selection from narrative records was benchmarked in the n2c2 2018 shared task \citep{stubbs2019n2c2}.
+Criteria2Query translates free-text criteria into database queries \citep{yuan2019criteria2query}, and the TREC Clinical Trials track provides graded patient--trial judgements \citep{roberts2021trec}.
+LLM-based matchers achieve strong criterion-level performance with large generative models, usually hosted \citep{jin2024trialgpt,wornow2024zeroshot}.
+
+\subsection{Clinical evaluations of decision models}
+Most early studies tested hosted Jev or large open decision models on medical knowledge and diagnosis.
+Accuracy is reasonable on examination-style questions, but calibration degrades on patient-level prediction and complex cases \citep{du2026reliable,madrid2026rheum,you2026triage,deobhakta2026ddx}. Laya was ``near chance'' in rheumatology \citep{madrid2026rheum}.
+Three studies are closest to ours:
+\begin{itemize}[nosep]
+\item \citet{he2026trial} evaluated hosted Jev under zero data retention on 2{,}048 TrialGPT and MIMIC patient--criterion pairs. It matched a schema-constrained LLM on macro-F1, flagged insufficient information more reliably, and cost 53--74\% less.
+\item \citet{zhang2026cs1} trained CS1-4B from Decision 2.0 Nox-4B on 12.4M questions from 3.6M patients. It outperformed open models of up to 27B on 13 of 14 tasks and quadrupled the number of eligible patients in the top 20 for trial screening. Its weights are not public.
+\item \citet{lee2026medjev} released MedJev and reported a patient-level ECE of 0.286, reduced to 0.007 by recalibration on 50--200 labelled examples.
+\end{itemize}
+These works evaluate models. We provide a procedure a practitioner can follow, which needs neither hospital-scale training data nor a data-processing agreement, and we test each of its steps.
+
+\subsection{Selective prediction}
+A calibrated probability allows a system to abstain.
+We use the risk--coverage framework \citep{geifman2017selective}: cases are ranked by confidence, and we report the largest share that can be auto-decided while the error rate among them stays within a budget.
+
+% =====================================================================
+\section{Methods}
+\label{sec:methods}
+
+\subsection{Screening pipeline}
+\label{sec:pipeline}
+The pipeline has seven steps (full guide with code in Appendix~\ref{app:guide}):
+\begin{enumerate}[nosep]
+\item encode each criterion as a \texttt{noul} question with the answer that eligibility requires;
+\item choose a local decision model and serve it behind the System One API;
+\item optionally append deterministic arithmetic facts to the note;
+\item combine the criterion probabilities into a conjunctive eligibility score;
+\item choose an automation threshold on labelled notes for a fixed error budget;
+\item if coverage is too low, fine-tune locally on synthetic notes;
+\item deploy with clinician review of the cases below the threshold.
+\end{enumerate}
+The sections below specify each component as used in the experiments.
+
+\subsection{Checklist encoding and the conjunctive score}
+\label{sec:encoding}
+The \textbf{lung-cancer screening} recommendation (USPSTF 2021, Grade B; \citealp{krist2021lung}) yields four criteria: age 50--80; $\geq$20 pack-years; currently smokes or quit $\leq$15 years ago; and no health problem that substantially limits life expectancy or the ability or willingness to undergo curative lung surgery. The last criterion must be answered ``no''.
+The \textbf{AAA screening} recommendation (USPSTF 2019, Grade B; \citealp{owens2019aaa}) yields three: male, age 65--75, ever smoked.
+Each criterion is a \texttt{noul} question stating its thresholds, inclusivity and units (Appendix~\ref{app:questions}).
+For criteria $c_i$ with required answers $r_i\in\{\text{yes},\text{no}\}$ and model probabilities $p_i=P(c_i=\text{yes}\mid\text{note})$, the conjunctive score is
+\begin{equation}
+P(\text{eligible}) = \textstyle\prod_i \big[p_i\,\mathbf{1}(r_i=\text{yes}) + (1-p_i)\,\mathbf{1}(r_i=\text{no})\big].
+\label{eq:and}
+\end{equation}
+This treats the criteria as conditionally independent given the note, which is a heuristic. In return, every negative decision names the criterion responsible.
+As a comparison we also ask a single \emph{direct} question containing the whole recommendation.
+
+\subsection{Computed-facts hook}
+\label{sec:facts}
+Decision models are weakest where a checklist needs arithmetic: packs per day $\times$ years, cigarettes converted to packs, or a quit year compared with the visit year.
+A deterministic pre-processor (\texttt{clinical\_system1/facts.py}) finds these spans with generic regular expressions and appends the computed values, for example \texttt{[Computed facts: about 40 pack-years (1 packs/day x 40 years); age 58.]}.
+The model still makes every judgement. When no pattern matches, nothing is appended.
+This mirrors Kev's \texttt{KEV\_DATE\_FACTS} option for day counts.
+
+\subsection{Data}
+\label{sec:data}
+\paragraph{E1: synthetic vignettes.}
+Primary-care notes are rendered from structured seeds (age, sex, smoking status, packs per day, years smoked, years since quitting, life-limiting condition, refusal of surgery), so every criterion label is exact.
+Smoking history is phrased as packs/day $\times$ years, cigarettes/day $\times$ years, or a stated pack-year figure; quitting is phrased as ``$N$ years ago'' or ``in YYYY'' with the visit year given.
+Distractors include household smoking, secondhand exposure, a family history of lung cancer or AAA, and benign comorbidities.
+Life-limiting conditions are:
+\begin{itemize}[nosep]
+\item hospice-enrolled metastatic cancer;
+\item NYHA~IV heart failure;
+\item oxygen-dependent end-stage COPD;
+\item advanced dementia;
+\item ESRD with dialysis declined;
+\item explicit refusal of surgery.
+\end{itemize}
+Values at each threshold are oversampled.
+Template family A (bullet and short narrative formats; 3{,}000 lung and 2{,}000 AAA notes) is used only for fine-tuning and calibration.
+Family B (problem-list and long-narrative formats; 500 lung and 400 AAA notes, 40\% eligible) is used only for testing.
+\paragraph{E1b: hand-written notes.}
+We wrote 40 free-text notes by hand with clinical abbreviations (``ppd'', ``pk-yr'', ``s/p''), indirect dates (``quit after his MI in 2019'') and boundary cases (e.g.\ 10 cigarettes/day for 38 years = 19 pack-years). 13 are lung-eligible and 10 AAA-eligible.
+\paragraph{E2: trial prescreening.}
+From TREC Clinical Trials 2021 \citep{roberts2021trec} we sampled 600 judged patient--trial pairs, 300 eligible and 300 excluded, stratified over the 75 topics.
+Eligibility text was taken from the ClinicalTrials.gov v2 API, with each criteria block capped at 6{,}000 characters.
+We ask a direct eligibility question plus ``meets the inclusion criteria?'' and ``meets any exclusion criterion?'', and score $P(\text{inc})(1-P(\text{exc}))$.
+
+\subsection{Models}
+\label{sec:systems}
+All systems run locally on one Apple M1 Max laptop (64\,GB unified memory). Table~\ref{tab:systems} lists them.
+Kev-0.8B, Kev-4B and Kev-9B are served by Kev's own MLX server; Kev-27B, H2O-Lightning-4B and Clef-flash by llama.cpp's native \texttt{/v1/systemone} endpoint (build 11960; \texttt{GGML\_METAL\_BF16\_DISABLE=1} was required because the M1 GPU lacks bfloat16).
+All decision models are queried through the same System One client with their shipped calibration.
+We do not apply H2O's optional ``yes/no floor'', which changes reported probabilities.
+The generative baseline, Gemma~4 (about 8B, 4-bit, via Ollama), is asked one question at a time; $P(\text{yes})$ is the softmax over its first-token log-probabilities for ``Yes'' and ``No''.
+For time reasons it was run on the first 250 notes of each E1 test set and on a balanced 300-pair E2 subset; Kev-27B was run on a balanced 300-pair E2 subset.
+We tried to include further medical and open models but excluded them for reproducibility reasons:
+\begin{itemize}[nosep]
+\item MedJev \citep{medjev_weights} and MedDecider (non-commercial) require bespoke client runtimes from their model repositories;
+\item a community GGUF of pplx-decider was incompatible with stock llama.cpp;
+\item Decision 2.0 Nox-4B, the base of CS1-4B, needs a llama.cpp build newer than the packaged release.
+\end{itemize}
+
+\begin{table}[t]\centering\small
+\caption{Systems evaluated. All run on one Apple M1 Max (64\,GB). FT = fine-tuned in this work.}
+\label{tab:systems}
+\begin{tabular}{llll}\toprule
+System & Parameters / precision & Runtime & Released \\ \midrule
+Laya EN, Laya multilingual (zero-shot) & 421M / 322M, fp32 & PyTorch MPS & Sep 2026 \\
+Laya EN + RLCD FT (ours) & 421M, fp32 & PyTorch MPS & this work \\
+Kev-0.8B, Kev-4B, Kev-9B v2 & LoRA on Qwen3.5, bf16 & Kev MLX server & Sep--Oct 2026 \\
+Kev-27B v2 & 27B, Q4\_K\_M GGUF & llama.cpp & Oct 2026 \\
+H2O-Lightning-4B & 4B, Q8\_0 GGUF & llama.cpp & Oct 2026 \\
+Cloudflare Clef-flash & 9B, Q8\_0 GGUF & llama.cpp & Oct 2026 \\
+Gemma~4 (generative reference) & $\sim$8B, 4-bit & Ollama & 2026 \\
+\bottomrule\end{tabular}
+\end{table}
+
+\subsection{Local fine-tuning}
+\label{sec:ft}
+We ported Laya's released two-GPU RLCD notebook to a single Apple GPU, keeping its hyperparameters:
+\begin{itemize}[nosep]
+\item AdamW with learning rates $2.5\times10^{-5}$ (encoder) and $10^{-4}$ (head), cosine schedule;
+\item micro-batch 8 with 4-step accumulation;
+\item $G{=}4$ noisy samples, with $\sigma$ annealed from 0.4 to 0.1;
+\item a reward combining log, spherical ($w{=}0.75$) and ranked-probability ($w{=}1$) scores, plus soft cross-entropy.
+\end{itemize}
+Laya's maintainers have since published their own Apple-silicon script. We trained for 2 epochs on 22{,}000 criterion and direct questions from family A, then fitted a \texttt{noul} temperature by LBFGS on 1{,}000 held-out family-A questions.
+Family-B notes and hand-written notes were never seen in training or calibration.
+
+\subsection{Automation thresholds and metrics}
+\label{sec:metrics}
+For a score $P$, confidence is $\max(P,1-P)$ and the decision is $P\geq0.5$.
+Notes are ranked by confidence. \emph{Coverage at budget $b$} is the largest fraction of notes that can be auto-decided, most confident first, with an error rate $\leq b$ among them; the corresponding confidence is the automation threshold $\tau$.
+We also report AUROC with 95\% bootstrap confidence intervals (1{,}000 resamples), accuracy at 0.5, balanced accuracy, Brier score, 10-bin expected calibration error (ECE), and the fraction of notes on which every criterion is answered correctly (``all criteria right'').
+Latency is the median wall-clock time per note for the full five-question lung checklist, measured with nothing else running on the GPU.
+
+% =====================================================================
+\section{Results}
+\label{sec:results}
+
+\begin{figure}[t]\centering
+\includegraphics[width=\linewidth]{figures/auroc_e1.pdf}
+\caption{Eligibility AUROC on held-out-template notes: one direct question (blue) versus the conjunctive score (orange).}
+\label{fig:auroc}
+\end{figure}
+\input{tables/lcs.tex}
+\input{tables/lcshand.tex}
+
+\subsection{Zero-shot performance of decision models}
+\label{sec:res-zeroshot}
+Tables~\ref{tab:lcs}--\ref{tab:aaa} and Figure~\ref{fig:auroc} summarise the checklist results.
+\textbf{Kev models} are usable out of the box and improve with size: lung AUROC (conjunctive) is 0.73 for Kev-0.8B, 0.88 for Kev-4B and 0.89 for Kev-9B, \TODO{Kev-27B}. AAA is essentially solved from 4B upward.
+\TODO{H2O-Lightning-4B and Clef-flash zero-shot results; compare with Kev at matched size.}
+\textbf{Laya zero-shot is not usable} for this task. Lung AUROC is 0.55--0.75, and all four criteria are right on only 8\% of notes; it misjudges even the explicit age criterion (44\% accuracy). This matches its last-place position on general leaderboards and upstream's warning that the \texttt{noul} head can follow its label text instead of the state.
+
+\subsection{Which criteria fail}
+\label{sec:res-criteria}
+Arithmetic criteria are the bottleneck for every zero-shot model (Table~\ref{tab:crit}).
+For Kev-4B, age is 98\% correct but pack-years only 77\% and recency 68\%; Kev-9B is similar.
+\TODO{per-criterion pattern for H2O, Clef-flash, Kev-27B.}
+\input{tables/crit.tex}
+
+\subsection{Effect of the computed-facts hook}
+\label{sec:res-facts}
+The hook raises pack-year accuracy for every model (Table~\ref{tab:facts}). Kev-4B goes from 0.77 to 0.98 on template notes and from 0.82 to 1.00 on hand-written notes; Gemma~4 goes from 0.84 to 0.99.
+For the fine-tuned Laya on hand-written notes, AUROC rises from 0.903 to 0.957 and coverage at a 5\% error budget from 38\% to 85\%.
+Kev's \emph{recency} accuracy does not change (0.68) even when ``quit about 16 years before the visit'' is stated, which indicates that it does not reliably compare a stated number with the 15-year cut-off inside a disjunctive question.
+\TODO{facts effect for new models.}
+The hook computed pack-years for all 433 template smokers and for 34 of the 36 hand-written smokers. The two misses were ``from her 20s until 2005'' and ``a few cigarettes on weekends''.
+\input{tables/facts.tex}
+
+\subsection{Direct question versus conjunctive score}
+\label{sec:res-and}
+On template notes the conjunctive score is at least as good as the direct question for every system (e.g.\ Gemma~4 lung 0.870$\rightarrow$0.940; Kev-0.8B AAA 0.736$\rightarrow$0.934), and its audit trail is fully correct on 97\% of notes for the fine-tuned Laya.
+It is not uniformly better. For zero-shot Kev on hand-written lung notes the direct question wins (Kev-4B 0.869 vs 0.732; with facts 0.966 vs 0.764), because a single miscalibrated criterion (recency) pulls the product down and sensitivity falls to 0.15.
+
+\subsection{Local fine-tuning}
+\label{sec:res-ft}
+Fine-tuning took 85 minutes and fitted a \texttt{noul} temperature of 3.5 (0.996 accuracy on the held-out calibration slice).
+On the unseen family-B templates the fine-tuned Laya reaches lung AUROC 0.999 and AAA 1.000, with Brier 0.008 and every criterion right on 97\% of notes.
+Because the two template families share phrase vocabulary, the hand-written notes are the stricter test.
+There it scores lung AUROC 0.903 (0.957 with facts), with every criterion right on 85\% (87.5\%) of notes, compared with 0.553 and 10\% before fine-tuning.
+\TODO{position relative to the strongest new zero-shot models on hand-written notes.}
+\input{tables/aaa.tex}
+
+\subsection{Selective automation and threshold transfer}
+\label{sec:res-threshold}
+Coverage at a fixed error budget is the most practical quantity here and also the most fragile (Figure~\ref{fig:rc}).
+The fine-tuned Laya automates 100\% of template notes at $\leq$5\% error with $\tau{=}0.98$, but only 38\% of hand-written notes (85\% with the facts hook).
+Kev-4B automates 42\% of template notes but 28\% of hand-written ones.
+A threshold measured on synthetic notes would therefore overstate safe coverage on real text, by a factor of 2.6 for the fine-tuned model.
+\begin{figure}[t]\centering
+\includegraphics[width=.62\linewidth]{figures/risk_coverage.pdf}
+\caption{Risk--coverage for the lung conjunctive score on held-out-template notes. A curve that stays under the dashed error budget longer automates more notes.}
+\label{fig:rc}
+\end{figure}
+
+\subsection{Trial prescreening}
+\label{sec:res-trec}
+Distinguishing eligible from excluded patients for a topically relevant trial is harder (Table~\ref{tab:trec}).
+Kev-4B reaches AUROC 0.820 [0.78, 0.85] directly and 0.839 [0.81, 0.87] with the inclusion$\times$(1$-$exclusion) decomposition. Kev-9B is similar (0.833 / 0.836) and Gemma~4 slightly lower (0.803 / 0.797).
+\TODO{H2O, Clef-flash, Kev-27B on TREC.}
+Coverage at a 5\% error budget is low for all systems ($\leq$7\%), so trial prescreening is a triage aid in this setting rather than a candidate for automation.
+\input{tables/trec.tex}
+
+\subsection{Latency}
+\label{sec:res-latency}
+For the full five-question lung checklist on one M1 Max (Table~\ref{tab:lat}), the fine-tuned Laya takes 124\,ms per note on the GPU and 506\,ms on the CPU alone.
+Kev-0.8B takes 134\,ms, Kev-4B 694\,ms and Gemma~4 1{,}250\,ms.
+\TODO{latency of new models.}
+At 124\,ms per note, a single laptop screens about 29{,}000 notes per hour.
+\input{tables/lat.tex}
+
+% =====================================================================
+\section{Discussion}
+\label{sec:discussion}
+
+\subsection{Principal findings}
+Four findings matter most for practice.
+First, the typed-question interface maps onto clinical checklists with no glue code and yields a per-criterion audit trail.
+Second, zero-shot decision models handle explicit criteria (age, sex, ever-smoked) and trial triage reasonably well but are unreliable on criteria that need arithmetic.
+Third, two inexpensive local steps close most of that gap: a deterministic hook that states the arithmetic, and a short fine-tune of a small encoder on synthetic notes. \TODO{update with new models.}
+Fourth, the automation threshold must be measured on the target notes. A threshold taken from synthetic data overstated safe coverage 2.6-fold.
+
+\subsection{Comparison with prior work}
+Our threshold finding agrees with \citet{lee2026medjev}: out-of-the-box calibration of decision models on patient-level tasks is poor, and a small labelled set (50--200 examples) is enough to repair it.
+CS1-4B \citep{zhang2026cs1} shows what institution-scale clinical training achieves. Our fine-tuning result suggests that much of the benefit for a fixed checklist is available from synthetic notes on a laptop, although our task is far narrower than theirs.
+\citet{he2026trial} found hosted Jev competitive with a schema-constrained LLM on trial criteria; our TREC results show that open models running locally reach AUROC above 0.8 on a related task, although the two settings are not directly comparable.
+General leaderboards were a poor guide: the model ranked 251st of 265 on the Decision Index became one of the strongest on our checklist after fine-tuning.
+
+\subsection{Hosted or local deployment}
+Hosted decision APIs are now inexpensive (\$0.01--0.10 per million input tokens), fast, and in some cases ahead on general leaderboards.
+For clinical notes the deciding factor is usually governance.
+Among the providers in Table~\ref{tab:landscape}, only OpenAI states HIPAA eligibility, and Cloudflare states zero data retention; the others offer retention terms under enterprise or written agreements, or make no statement.
+A fully local pipeline needs no agreement, and the step that matters most, measuring the threshold on one's own notes, is the same in either deployment.
+
+\subsection{Where generative models still lead}
+With the facts hook, the generative baseline was the most accurate system on hand-written lung notes (AUROC 0.986), reading varied phrasing better than the decision models we tested, at roughly ten times the latency of the fine-tuned encoder.
+Where throughput matters less than accuracy and the model can run on premises, first-token log-probabilities from a generative model fit the same pipeline.
+
+\subsection{Limitations}
+\begin{itemize}[nosep]
+\item \textbf{Synthetic text.} E1 notes are template-generated. Disjoint template families and hand-written notes narrow the gap to real EHR text but do not close it.
+\item \textbf{Small hand-written set.} It contains 40 notes, written and labelled by the same author who wrote the facts hook, which may favour the hook.
+\item \textbf{TREC data.} TREC topics are synthetic and its relevance labels are noisy.
+\item \textbf{Independence assumption.} The conjunctive score treats criteria as independent given the note.
+\item \textbf{Local models only.} We evaluated open models that run locally, several in quantised form; hosted APIs are discussed only from published information. The generative baseline is a single 4-bit model without chain-of-thought.
+\item \textbf{Not validated for care.} Nothing here is validated for patient care. Deployment requires prospective evaluation on real charts, subgroup audits and clinician review of automated negatives.
+\end{itemize}
+
+% =====================================================================
+\section{Conclusion}
+Open decision models running on a laptop can screen standard-of-care checklists in a meaningful way, with no note leaving the machine.
+This requires that the checklist be broken into typed criteria, the arithmetic be made explicit, the model be chosen or specialised on the target task, and the automation threshold be measured on the practitioner's own notes.
+\TODO{final headline numbers.}
+The released guide, app and predictions allow others to repeat the process for their own checklists.
+
+\section*{Data and code availability}
+Code, vignette generators, hand-written notes, per-item predictions, the screening app and HTML documentation are available at \url{https://github.com/menonpg/clinical-system1} (Apache-2.0).
+TREC Clinical Trials 2021 topics and judgements are available from NIST, and trial text from ClinicalTrials.gov.
+Upstream models: \url{https://github.com/NandhaKishorM/laya}, \url{https://github.com/jaredpalmer/kev}, and the model cards cited in Table~\ref{tab:landscape}.
+
+\section*{Competing interests}
+\TODO{author to confirm: e.g.\ ``The author declares no competing interests.''}
+
+\section*{Use of AI assistance}
+\TODO{author to confirm wording: e.g.\ ``Software, experiment orchestration and manuscript drafting were assisted by an AI coding assistant (Claude, Anthropic). The author designed the study, reviewed all code and results, and takes responsibility for the content.''}
+
+\bibliography{refs}
+
+% =====================================================================
+\appendix
+\section{Practitioner guide: screening your own checklist}
+\label{app:guide}
+This appendix walks through the pipeline using lung-cancer screening as the running example. Each step names the file in the release that implements it.
 
 \step{Step 1 --- Write one yes/no question per criterion}
-Split the recommendation into atomic criteria and write each as a \texttt{noul} question.
-Record the answer that eligibility \emph{requires} (\texttt{clinical\_system1/checklists.py}):
+Split the recommendation into atomic criteria, write each as a \texttt{noul} question, and record the answer that eligibility \emph{requires} (\texttt{clinical\_system1/checklists.py}):
 \begin{lstlisting}[language=Python]
 LUNG = Checklist(key="lcs", title="Lung cancer screening (USPSTF 2021)", criteria=(
   Criterion("lcs_age", "Is the patient between 50 and 80 years old, inclusive?"),
@@ -83,224 +377,77 @@ LUNG = Checklist(key="lcs", title="Lung cancer screening (USPSTF 2021)", criteri
 \end{lstlisting}
 Rules we found useful:
 \begin{itemize}[nosep]
-\item state thresholds and inclusivity explicitly;
-\item define units in the question (``20 cigarettes = 1 pack'');
-\item never combine two criteria in one question;
-\item phrase exclusions positively (``does X apply?'') with \texttt{required=False}, rather than as a negated question.
+\item State thresholds and inclusivity explicitly.
+\item Define units in the question (``20 cigarettes = 1 pack'').
+\item Never combine two criteria in one question.
+\item Phrase exclusions positively (``does X apply?'') with \texttt{required=False}.
+\item Keep a direct question as a baseline.
 \end{itemize}
-Keep a \emph{direct} question containing the whole recommendation as a baseline.
 
-\step{Step 2 --- Choose a model}
-Start the model locally and send the questions:
+\step{Step 2 --- Choose a model and serve it locally}
+Most open decision models can be served on a laptop with one command, and all speak the same request shape:
 \begin{lstlisting}
-cd upstream/kev && uv sync --extra serve
-uv run --extra serve python -m kev.serve --run jaredpalmer/kev-4b --port 8009    # MLX on Apple, CUDA elsewhere
+GGML_METAL_BF16_DISABLE=1 llama-server -m h2o-lightning-4b-Q8_0.gguf --no-mmproj -np 1 --port 8031
+cd upstream/kev && uv run --extra serve python -m kev.serve --run jaredpalmer/kev-4b --port 8009
 \end{lstlisting}
 \begin{lstlisting}[language=Python]
-from clinical_system1.backends import KevBackend, LayaBackend, OllamaBackend
-model = KevBackend(8009, "kev-4b")             # or LayaBackend(model="english", device="mps")
+from clinical_system1.backends import SystemOneBackend
+model = SystemOneBackend("http://127.0.0.1:8031", "h2o-lightning-4b")
 p = model.predict(note_text, LUNG.questions(include_direct=False))   # {criterion: P(yes)}
 \end{lstlisting}
-Our evidence (\S\ref{sec:results}) gives a simple rule.
-For a zero-shot start, use \textbf{Kev-4B} on a laptop with $\geq$16\,GB of unified memory or a GPU.
-For the best speed and accuracy, fine-tune \textbf{Laya} (Step~6); never use it zero-shot.
-A generative LLM, scored from its first-token Yes/No log-probabilities (\texttt{OllamaBackend}), is a strong but $\sim$\SpeedupGemma{}$\times$ slower reference.
+Leaderboard rank is a weak guide for clinical checklists (\S\ref{sec:discussion}).
+Shortlist two or three models that fit your hardware and licence (several medical models are non-commercial), and run Step~5 on your own notes for each.
+Use hosted APIs only under an agreement that covers protected health information.
 
 \step{Step 3 --- Give the model the arithmetic}
-Decision models are weakest where the checklist needs arithmetic: packs/day $\times$ years, cigarettes to packs, a quit year against the visit year.
-A deterministic hook (\texttt{clinical\_system1/facts.py}) finds these spans with generic regular expressions and appends the computed values; the model still makes every judgement:
+Append computed values with a deterministic hook (\texttt{clinical\_system1/facts.py}), and write the equivalent for the units in your own checklist:
 \begin{lstlisting}
 Visit 2026. 58M ... Smokes ~1 ppd since he was 18 ...
 [Computed facts: about 40 pack-years (1 packs/day x 40 years); age 58.]
 \end{lstlisting}
-If nothing matches, nothing is appended.
-This mirrors Kev's own \texttt{KEV\_DATE\_FACTS} option for day counts.
 
-\step{Step 4 --- Combine criteria into an auditable score}
-Ask each criterion separately and combine them conjunctively:
-\begin{equation}
-P(\text{eligible}) = \textstyle\prod_i \big[p_i\,\mathbf{1}(r_i=\text{yes}) + (1-p_i)\,\mathbf{1}(r_i=\text{no})\big].
-\end{equation}
-This treats the criteria as independent given the note, which is a heuristic. In return, every negative decision names the criterion that caused it (\texttt{Checklist.failed}), and a clinician can check that criterion alone.
-Always keep the per-criterion answers. Decide on your labelled set (Step~5) whether to threshold this product or the direct question. One miscalibrated criterion can drag the product down; for zero-shot Kev on hand-written notes, the direct question plus facts was the better score.
+\step{Step 4 --- Combine the criteria}
+Compute Eq.~\eqref{eq:and} (\texttt{Checklist.aggregate}) and keep \texttt{Checklist.failed} as the audit trail.
+On your labelled set (Step~5), decide whether to threshold this product or the direct question.
 
 \step{Step 5 --- Label a small set and choose an automation threshold}
-Label 50--200 of your own notes for eligibility.
-Rank them by confidence $\max(P,1-P)$ and find the lowest confidence $\tau$ at which the auto-decided notes stay within your error budget (\nolinkurl{experiments/operating_points.py}).
-In production, notes with confidence $\geq\tau$ are auto-decided and the rest go to a clinician.
-The coverage at $\tau$ (the share of notes automated) is the number to plan staffing around.
+Label 50--200 of your own notes for eligibility, then run \nolinkurl{experiments/operating_points.py}.
+It returns the confidence $\tau$ that keeps auto-decisions within your error budget, and the share of notes that clears it.
 Never reuse a $\tau$ measured on one model, checklist, facts setting or note source for another.
 
 \step{Step 6 --- If coverage is too low, fine-tune on your laptop}
-Write a seed generator for your checklist: sample the structured facts, render them as notes in several templates, and compute the labels exactly (\texttt{clinical\_system1/vignettes.py}).
-Train on one template family and test on another.
-Our single-GPU port of Laya's RLCD recipe (\nolinkurl{experiments/finetune_laya.py}) trains on 22{,}000 questions in about \FTMinutes{} minutes on an M1 Max and refits the temperature on a held-out slice:
+Write a seed generator for your checklist (\texttt{clinical\_system1/vignettes.py}), train on one template family and test on another:
 \begin{lstlisting}
 upstream/laya/.venv/bin/python experiments/finetune_laya.py --epochs 2 --out runs/laya-clinical
 \end{lstlisting}
-Kev supports the same pattern (\texttt{kev.train --init\_from jaredpalmer/kev-4b}), but its Mac training path is slow for Qwen3.5 bases.
-After fine-tuning, repeat Step 5: the threshold belongs to the model you ship.
+Then repeat Step~5. The threshold belongs to the model you ship.
 
 \step{Step 7 --- Deploy with review}
-The release includes a local web app (\texttt{app/run.sh}, Fig.~\ref{fig:app}).
-It takes a note (or a batch), a checklist (built-in or edited in the browser), a model and an error budget, and returns per-criterion probabilities, $P(\text{eligible})$, the audit trail and an \emph{auto-eligible / auto-ineligible / clinician review} decision.
-A ``use in your code'' tab exports the checklist as a System One request and as Python.
-For real use, add PHI redaction and audit logging (both upstreams provide prediction hooks).
-Have a clinician review a sample of automated negatives, and monitor coverage and error on a rolling labelled sample.
-
-\section{Evaluation}
-\label{sec:eval}
-\paragraph{E1: USPSTF checklists.}
-We encode lung-cancer screening \citep{krist2021lung} (four criteria) and AAA screening \citep{owens2019aaa} (men 65--75 who have ever smoked; three criteria).
-Notes are rendered from structured seeds, so every label is exact.
-Smoking history is phrased three ways (packs/day $\times$ years, cigarettes/day, stated pack-years), and quitting two ways (``$N$ years ago'', ``in YYYY'').
-Distractors include household smoking, secondhand exposure, family history and benign comorbidities.
-Life-limiting conditions include hospice-enrolled metastatic cancer, NYHA~IV heart failure, oxygen-dependent COPD, advanced dementia, ESRD with dialysis declined, and explicit refusal of surgery.
-Threshold values are oversampled.
-Template family A (3{,}000 lung and 2{,}000 AAA notes) is used only for fine-tuning and calibration.
-Family B (500 lung and 400 AAA notes, 40\% eligible) is used only for testing.
-We also wrote \textbf{40 free-text notes by hand}, with abbreviations, indirect dates and boundary cases (13 lung-eligible, 10 AAA-eligible).
-\paragraph{E2: trial prescreening.}
-From TREC Clinical Trials 2021 \citep{roberts2021trec} we take 600 judged patient--trial pairs, eligible versus excluded (300 each, stratified over the 75 topics), with eligibility text from ClinicalTrials.gov.
-We ask a direct question and ``meets the inclusion criteria?'' / ``meets any exclusion criterion?'', and score $P(\text{inc})(1-P(\text{exc}))$.
-\paragraph{Systems.}
-All run locally on an Apple M1 Max (64\,GB):
+The local web app (\texttt{app/run.sh}, Figure~\ref{fig:app}) takes a note or a batch, a checklist (built-in or edited in the browser), a model and an error budget.
+It returns per-criterion probabilities, $P(\text{eligible})$, the audit trail, and an \emph{auto-eligible / auto-ineligible / clinician review} decision.
+For real use:
 \begin{itemize}[nosep]
-\item Laya EN and Laya ML (released checkpoints, MPS);
-\item Kev-0.8B and Kev-4B (released adapters, MLX bf16);
-\item Laya EN after our local RLCD fine-tune;
-\item Gemma~4 through Ollama ($\sim$8B, 4-bit), asked one question at a time, with $P(\text{yes})$ from the first-token Yes/No log-probabilities. For cost reasons it is run on the first 250 notes per E1 split and on a balanced 300-pair E2 subset.
+\item add PHI redaction and audit logging (both upstreams provide prediction hooks);
+\item have a clinician review a sample of automated negatives;
+\item monitor coverage and error on a rolling labelled sample.
 \end{itemize}
-\paragraph{Metrics.}
-We report AUROC (with 1{,}000-resample bootstrap CIs), accuracy, Brier score, ECE, coverage at 5\% and 10\% error budgets, the share of notes with every criterion right, and uncontended latency per note for the full checklist.
 
-\section{Results}
-\label{sec:results}
-
-\begin{figure}[t]\centering
-\includegraphics[width=\linewidth]{figures/auroc_e1.pdf}
-\caption{Eligibility AUROC on held-out-template notes: one direct question (blue) versus the checklist-AND product (orange).}
-\label{fig:auroc}
-\end{figure}
-\input{tables/lcs.tex}
-\input{tables/lcshand.tex}
-
-\paragraph{Step 2: which model zero-shot?}
-Tables~\ref{tab:lcs}--\ref{tab:trec} answer this.
-\textbf{Kev-4B} is the strongest decision model out of the box: lung AUROC 0.877 (checklist-AND), AAA 1.000, and TREC 0.82--0.84.
-On TREC it matches the 8B generative baseline (0.80) at roughly half the latency.
-Kev-0.8B is clearly weaker (lung 0.73, TREC 0.63): the Qwen base carries most of the capability.
-\textbf{Laya zero-shot is not usable} for this task. Lung AUROC is 0.55--0.75, and on only 8\% of notes are all four criteria right; it even misjudges the plain age criterion (44\% accuracy).
-This matches upstream's warning that the \texttt{noul} head can follow its label text instead of the state.
-Laya-multilingual is at chance on TREC even with an 8{,}192-token window.
-The arithmetic criteria are the bottleneck for every zero-shot model (Table~\ref{tab:crit}).
-For Kev-4B, age is 98\% correct but pack-years only 77\% and recency 68\%.
-The explicit-age AAA checklist is essentially solved (Table~\ref{tab:aaa}).
-\input{tables/crit.tex}
-
-\paragraph{Step 3: arithmetic facts.}
-The deterministic hook (Table~\ref{tab:facts}) raises pack-year accuracy for every model.
-Kev-4B goes from 0.77 to 0.98 on template notes and from 0.82 to 1.00 on hand-written notes, and Gemma~4 goes from 0.84 to 0.99.
-It helps the fine-tuned Laya most where it matters, on hand-written notes: AUROC rises from 0.903 to 0.957, and coverage at a 5\% error budget from 38\% to 85\%.
-One gap remains. Kev's \emph{recency} accuracy does not move (0.68) even when ``quit about 16 years before the visit'' is stated, so Kev does not reliably compare a stated number with the 15-year cut-off inside a disjunctive question.
-The hook computed pack-years exactly for all 433 template smokers, and for 34 of the 36 hand-written smokers. It missed ``from her 20s until 2005'' and ``a few cigarettes on weekends''. It also did not turn ``from age 16 to age 60'' into a quit interval.
-\input{tables/facts.tex}
-
-\paragraph{Step 4: direct question or checklist-AND?}
-On template notes the conjunctive score is at least as good as the direct question for every system: Gemma~4 lung 0.870$\rightarrow$0.940, and Kev-0.8B AAA 0.736$\rightarrow$0.934.
-It also gives an audit trail that is fully correct on 97\% of notes for the fine-tuned Laya.
-It is not uniformly better, however.
-For zero-shot Kev on hand-written lung notes the direct question wins (Kev-4B 0.869 vs 0.732; with facts 0.966 vs 0.764).
-The product is dragged down by one miscalibrated criterion (recency), giving a sensitivity of only 0.15.
-Our advice is therefore to keep the per-criterion answers for audit, but to choose the score you threshold on your own labelled set.
-
-\paragraph{Step 5: thresholds do not transfer.}
-Coverage at a 5\% error budget is the most practical number here, and also the most fragile.
-The fine-tuned Laya automates 100\% of template notes at $\leq$5\% error with $\tau{=}0.98$, but only 38\% of hand-written notes (85\% with the facts hook).
-Kev-4B automates 42\% of template notes but 28\% of hand-written ones.
-A threshold measured on synthetic notes would badly overstate what is safe on real text.
-This is why the recipe measures $\tau$ on the practitioner's own labelled notes.
-\begin{figure}[t]\centering
-\includegraphics[width=.62\linewidth]{figures/risk_coverage.pdf}
-\caption{Risk--coverage for the lung checklist-AND score on held-out-template notes. A curve that stays under the dashed error budget longer automates more notes.}
-\label{fig:rc}
-\end{figure}
-
-\paragraph{Step 6: local fine-tuning.}
-Our single-MPS port of Laya's RLCD recipe trained on 22{,}000 family-A questions in 85 minutes. It fitted a \texttt{noul} temperature of 3.5 on a held-out slice (0.996 accuracy there).
-On the unseen family-B templates it reaches lung AUROC 0.999, AAA 1.000, Brier 0.008, with every criterion correct on 97\% of notes.
-Because the two template families share phrase vocabulary, the hand-written notes are the honest test.
-There it scores lung AUROC 0.903 (0.957 with facts), with every criterion correct on 85\% (87.5\%) of notes, against 0.553 and 10\% before fine-tuning.
-A small encoder, specialised on a laptop with synthetic data, becomes the best \emph{decision} model in the study.
-\input{tables/aaa.tex}
-
-\paragraph{E2: trial prescreening.}
-Distinguishing eligible from excluded patients for a trial they are topically relevant to is harder (Table~\ref{tab:trec}).
-Kev-4B reaches AUROC 0.820 [0.78, 0.85] directly and 0.839 [0.81, 0.87] with the inclusion$\times$(1$-$exclusion) decomposition.
-Gemma~4 reaches 0.803 and 0.797.
-Coverage at 5\% error is low for all systems ($\leq$7\%), so trial prescreening is a triage aid here, not something to automate.
-\input{tables/trec.tex}
-
-\paragraph{Latency.}
-Uncontended, on one M1 Max, for the full five-question lung checklist (Table~\ref{tab:lat}): the fine-tuned Laya takes 124\,ms per note on the GPU and 506\,ms on CPU alone.
-Kev-0.8B takes 134\,ms, Kev-4B 694\,ms and Gemma~4 1{,}250\,ms.
-Ollama's prompt caching narrows the gap, but the generative model still needs one decode per question.
-At 124\,ms per note, a single laptop screens about 29{,}000 notes per hour.
-\input{tables/lat.tex}
-
-
-\section{Discussion}
-
-\paragraph{What a practitioner should take away.}
-(i)~The typed-question interface maps onto clinical checklists with no glue code, and it produces an audit trail per criterion.
-(ii)~Out of the box, a 4B decision model is a reasonable prescreener for explicit criteria (age, sex, ever-smoked) and for trial triage. It is not reliable for criteria that need arithmetic.
-(iii)~Two cheap, local steps close most of the gap. The first is a deterministic hook that states the arithmetic; the second is an 85-minute fine-tune of a 421M encoder on synthetic notes from a seed generator. Together they give the fastest system in the study and, on hand-written notes, the second most accurate after a 10$\times$ slower generative model given the same hook.
-(iv)~The automation threshold must be measured on the target notes. A threshold taken from synthetic data overstated safe coverage by a factor of 2.6 in our study (100\% vs 38\%).
-
-\paragraph{Where generative models still win.}
-With the facts hook, the 8B generative baseline was the most accurate system on hand-written lung notes (AUROC 0.986).
-It reads varied phrasing better than any decision model we tested.
-If latency and throughput matter less than accuracy, and the model can run on premises, first-token log-probabilities from a generative model are a strong alternative. They slot into the same recipe, and the app supports them.
-
-
-\paragraph{Limitations.}
-The E1 notes are template-generated. Disjoint template families and the hand-written notes narrow the gap to real EHR text but do not close it.
-The hand-written set is small, and it was written and labelled by the same author who wrote the facts hook, which may flatter the hook.
-TREC topics are synthetic, and TREC relevance labels are noisy.
-The conjunctive score assumes independence.
-We ran small decision models only ($\leq$4B), and a single 4-bit generative baseline without chain-of-thought.
-Nothing here is validated for patient care.
-Deployment needs prospective evaluation on real charts, subgroup audits, and clinician review of automated negatives.
-
-\section{Release}
-\label{sec:release}
-\url{https://github.com/menonpg/clinical-system1} (Apache-2.0) contains:
-\begin{itemize}[nosep]
-\item the \texttt{clinical\_system1} package (checklists, vignette generator, facts hook, backends, metrics);
-\item every experiment script and per-item prediction;
-\item the local fine-tuning port;
-\item the screening app;
-\item HTML documentation of Laya and Kev and of this study.
-\end{itemize}
-Upstreams: \url{https://github.com/NandhaKishorM/laya}, \url{https://github.com/jaredpalmer/kev}.
-
-\begin{figure}[t]\centering
+\begin{figure}[h]\centering
 \includegraphics[width=\linewidth]{figures/app.png}
-\caption{The released local screening app. The note, checklist and model are on the left. On the right are per-criterion $P(\text{yes})$, the conjunctive $P(\text{eligible})$, the computed facts that were appended, and the automation decision at the chosen error budget.}
+\caption{The released local screening app. Note, checklist and model are on the left; per-criterion $P(\text{yes})$, the conjunctive $P(\text{eligible})$, appended computed facts and the automation decision at the chosen error budget are on the right.}
 \label{fig:app}
 \end{figure}
 
-\bibliography{refs}
-
-\appendix
 \section{Question wording}
 \label{app:questions}
 \input{questions.tex}
+
 \section{Reproducing every number}
 \begin{lstlisting}
 experiments/prep_trec.py            # TREC CT 2021 sample + ClinicalTrials.gov criteria
-experiments/run_all.sh              # all models, one at a time, resumable
-experiments/run_facts.sh            # Step 3 ablation
+experiments/run_all.sh              # original systems, one at a time, resumable
+experiments/run_facts.sh            # computed-facts ablation
+experiments/bench_model.sh          # any local System One server (new models)
 experiments/analyze.py              # summary.json
 experiments/figures.py; paper/make_tables.py
 \end{lstlisting}

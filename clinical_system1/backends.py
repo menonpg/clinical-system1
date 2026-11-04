@@ -58,23 +58,36 @@ class LayaFTBackend(Backend):
         return {k: float(v["noul"]) for k, v in r["answers"].items()}
 
 
-class KevBackend(Backend):
-    def __init__(self, port: int, label: str):
-        self.url = f"http://127.0.0.1:{port}/v1/systemone"
-        self.name = label
+class SystemOneBackend(Backend):
+    """Any endpoint speaking TypeSafe's System One API (POST {base}/v1/systemone): Kev, Laya's server,
+    and the other decision models that adopted the same request shape. Pass api_key for hosted ones."""
+
+    def __init__(self, base_url: str, label: str, model: str = "kev-latest", api_key: str | None = None):
+        self.url = base_url.rstrip("/") + "/v1/systemone"
+        self.name, self.model, self.api_key = label, model, api_key
 
     def predict(self, state, questions):
-        body = json.dumps({"state": state, "model": "kev-latest", "questions": questions}).encode()
+        body = json.dumps({"state": state, "model": self.model, "questions": questions}).encode()
+        headers = {"content-type": "application/json"}
+        if self.api_key:
+            headers["authorization"] = f"Bearer {self.api_key}"
         for attempt in range(4):  # the Metal backend occasionally fails a command buffer under GPU contention
             try:
-                req = urllib.request.Request(self.url, body, {"content-type": "application/json"})
+                req = urllib.request.Request(self.url, body, headers)
                 r = json.load(urllib.request.urlopen(req, timeout=600))
                 break
-            except urllib.error.HTTPError:
-                if attempt == 3:
+            except urllib.error.HTTPError as e:
+                if attempt == 3 or e.code in (400, 401, 403, 422):
                     raise
                 time.sleep(5 * (attempt + 1))
         return {k: float(v["noul"]) for k, v in r["answers"].items()}
+
+
+class KevBackend(SystemOneBackend):
+    """A local `python -m kev.serve` on the given port."""
+
+    def __init__(self, port: int, label: str):
+        super().__init__(f"http://127.0.0.1:{port}", label)
 
 
 SYSTEM = ("You answer clinical screening questions about a patient record. "

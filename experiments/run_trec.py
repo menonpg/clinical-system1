@@ -47,7 +47,8 @@ def main():
     if a.n:  # the file is sorted by label, so take evenly spaced rows to keep the subset balanced
         step = len(rows) / a.n
         rows = [rows[int(i * step)] for i in range(a.n)]
-    out = ROOT / "experiments" / "results" / f"e2_trec_{a.backend.replace(':', '_')}.jsonl"
+    tag = a.backend.split(":", 2)[2] if a.backend.startswith("s1:") else a.backend.replace(":", "_")
+    out = ROOT / "experiments" / "results" / f"e2_trec_{tag}.jsonl"
     done = {(json.loads(l)["topic"], json.loads(l)["nct"]) for l in open(out)} if out.exists() else set()
     with open(out, "a") as fh:
         for i, r in enumerate(rows):

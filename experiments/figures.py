@@ -22,9 +22,9 @@ DOCF = ROOT / "docs" / "figures"
 PAPF = ROOT / "paper" / "figures"
 S = json.loads((RES / "summary.json").read_text())
 LAT = json.loads((RES / "latency.json").read_text()) if (RES / "latency.json").exists() else {}
-ORDER = ["laya", "laya-ml", "laya-ft", "kev08b", "kev4b", "ollama_gemma4_latest"]
+ORDER = ["laya", "laya-ml", "laya-ft", "kev08b", "kev4b", "kev9b", "h2o4b", "clefflash", "kev27b", "ollama_gemma4_latest"]
 SHORT = {"laya": "Laya EN", "laya-ml": "Laya ML", "laya-ft": "Laya FT (ours)", "kev08b": "Kev-0.8B", "kev4b": "Kev-4B",
-         "ollama_gemma4_latest": "Gemma 4 (gen.)", "laya-ml8k": "Laya ML 8k"}
+         "ollama_gemma4_latest": "Gemma 4 (gen.)", "laya-ml8k": "Laya ML 8k", "kev9b": "Kev-9B", "h2o4b": "H2O-L-4B", "clefflash": "Clef-flash", "kev27b": "Kev-27B"}
 # categorical slots (validated: light / dark), used by role
 SER = [("#2a78d6", "#3987e5"), ("#eb6834", "#d95926"), ("#1baf7a", "#199e70"), ("#eda100", "#c98500")]
 
@@ -176,7 +176,7 @@ def main():
         if c:
             curves.append((SHORT[tag], f"--s{i + 1}", *c))
     figs["risk_lcs"] = risk_coverage(curves, "Risk–coverage, lung checklist-AND")
-    t2 = [t for t in ["laya-ml8k", "kev08b", "kev4b", "ollama_gemma4_latest"] if t in S["e2"]]
+    t2 = [t for t in ["laya-ml8k", "kev08b", "kev4b", "kev9b", "h2o4b", "clefflash", "kev27b", "ollama_gemma4_latest"] if t in S["e2"]]
     figs["trec"] = grouped_bars([SHORT[t] for t in t2], [("Direct question", "--s1"), ("Inclusion × (1 − exclusion)", "--s2")],
                                 [[S["e2"][t]["direct"]["auroc"], S["e2"][t]["decomposed"]["auroc"]] for t in t2],
                                 "TREC CT 2021 eligible vs excluded · AUROC", ymin=0.3, ymax=0.9)
