@@ -1,9 +1,44 @@
-\begin{thebibliography}{14}
+\begin{thebibliography}{39}
 \providecommand{\natexlab}[1]{#1}
 \providecommand{\url}[1]{\texttt{#1}}
 \expandafter\ifx\csname urlstyle\endcsname\relax
   \providecommand{\doi}[1]{doi: #1}\else
   \providecommand{\doi}{doi: \begingroup \urlstyle{rm}\Url}\fi
+
+\bibitem[{Artificial Analysis}(2026)]{aa_decision_index}
+{Artificial Analysis}.
+\newblock Artificial analysis decision index v1.0.
+\newblock
+  \url{https://artificialanalysis.ai/articles/artificial-analysis-decision-index},
+  2026.
+\newblock Accessed 2026-11-04.
+
+\bibitem[{Cloudflare}(2026)]{cloudflare_clef}
+{Cloudflare}.
+\newblock Clef decision models.
+\newblock \url{https://blog.cloudflare.com/clef-decision-models}, 2026.
+\newblock Weights: huggingface.co/Cloudflare/clef. Accessed 2026-11-04.
+
+\bibitem[Deobhakta et~al.(2026)Deobhakta, Chang, Chen, Jaipalli, Pinhas, Tai,
+  and Rosen]{deobhakta2026ddx}
+Avnish Deobhakta, Jonathan Chang, Royce W.~S. Chen, Sujai Jaipalli, Alexander
+  Pinhas, Tak Yee~Tania Tai, and Richard~B. Rosen.
+\newblock Do calibrated-probability claims hold up in clinical diagnosis? a
+  pre-registered evaluation of a decision model against frontier language
+  models.
+\newblock medRxiv, doi:10.64898/2026.10.09.26365153, 2026.
+
+\bibitem[Du et~al.(2026)Du, Zhao, Zhao, et~al.]{du2026reliable}
+Yanrui Du, Danyang Zhao, Sendong Zhao, et~al.
+\newblock How reliable are system-one decisions in medicine? a comparative
+  study of {Jev}, {Jev}-like models, and {LLMs}, 2026.
+
+\bibitem[Ferreira(2026)]{tomshw_dispute}
+Bruno Ferreira.
+\newblock Jev-like decision models are flooding the {AI} market, after
+  researcher claims {TypeSafe} copied their research.
+\newblock Tom's Hardware, 12 October 2026, 2026.
+\newblock Accessed 2026-11-04.
 
 \bibitem[Geifman and El-Yaniv(2017)]{geifman2017selective}
 Yonatan Geifman and Ran El-Yaniv.
@@ -16,15 +51,38 @@ Tilmann Gneiting and Adrian~E. Raftery.
 \newblock \emph{Journal of the American Statistical Association}, 102\penalty0
   (477):\penalty0 359--378, 2007.
 
+\bibitem[{Google Chrome Built-in AI team}(2026)]{chrome_decisions}
+{Google Chrome Built-in AI team}.
+\newblock Decisions {API} explainer.
+\newblock \url{https://github.com/explainers-by-googlers/decisions-api}, 2026.
+\newblock Accessed 2026-11-04.
+
 \bibitem[Guo et~al.(2017)Guo, Pleiss, Sun, and Weinberger]{guo2017calibration}
 Chuan Guo, Geoff Pleiss, Yu~Sun, and Kilian~Q. Weinberger.
 \newblock On calibration of modern neural networks.
 \newblock In \emph{International Conference on Machine Learning}, 2017.
 
+\bibitem[{H2O.ai}(2026)]{h2o_lightning4b}
+{H2O.ai}.
+\newblock {H2O-Lightning-4B} model card.
+\newblock \url{https://huggingface.co/h2oai/h2o-lightning-4b}, 2026.
+\newblock Accessed 2026-11-04.
+
+\bibitem[He et~al.(2026)He, Gao, Li, Zhang, Wei, Zhang, and Yuan]{he2026trial}
+Mengxian He, Ziyue Gao, Chun Li, Shunyi Zhang, Hao Wei, Minqing Zhang, and
+  Wu~Yuan.
+\newblock Can {JEV} support clinical trial criteria assessment?, 2026.
+
 \bibitem[Hu et~al.(2022)Hu, Shen, Wallis, et~al.]{hu2022lora}
 Edward~J. Hu, Yelong Shen, Phillip Wallis, et~al.
 \newblock {LoRA}: Low-rank adaptation of large language models.
 \newblock In \emph{International Conference on Learning Representations}, 2022.
+
+\bibitem[{IBM}(2026)]{granite_switch}
+{IBM}.
+\newblock Granite switch 4.1 8b model card.
+\newblock \url{https://huggingface.co/ibm-granite/granite-switch-4.1-8b}, 2026.
+\newblock Accessed 2026-11-04.
 
 \bibitem[Jin et~al.(2024)Jin, Wang, Floudas, et~al.]{jin2024trialgpt}
 Qiao Jin, Zifeng Wang, Charalampos~S. Floudas, et~al.
@@ -37,11 +95,56 @@ Alex~H. Krist, Karina~W. Davidson, Carol~M. Mangione, et~al.
   recommendation statement.
 \newblock \emph{JAMA}, 325\penalty0 (10):\penalty0 962--970, 2021.
 
-\bibitem[{Nandakishor M.}(2026)]{laya2026}
-{Nandakishor M.}
+\bibitem[Lee(2026)]{medjev_weights}
+Simon~A. Lee.
+\newblock {MedJev} model weights.
+\newblock \url{https://huggingface.co/Simonlee711/MedJev}, 2026.
+\newblock CC-BY-NC. Accessed 2026-11-04.
+
+\bibitem[Lee et~al.(2026)Lee, Sha, Jeong, Pan, and Chiang]{lee2026medjev}
+Simon~A. Lee, Jiahang Sha, Moonseong Jeong, Yunbei Pan, and Jeffrey~N. Chiang.
+\newblock {MedJev}: Evaluating zero-shot system-one decision making in
+  medicine, 2026.
+
+\bibitem[{Liquid AI}(2026)]{liquid_d1}
+{Liquid AI}.
+\newblock Introducing d1: the most capable decision model, now with vision.
+\newblock \url{https://www.liquid.ai/blog/d1-decision-model}, 2026.
+\newblock Accessed 2026-11-04.
+
+\bibitem[Madrid-Garc{\'i}a et~al.(2026)Madrid-Garc{\'i}a, Benavent, Lechner,
+  Kremer, Knitza, and Merino-Barbancho]{madrid2026rheum}
+Alfredo Madrid-Garc{\'i}a, Diego Benavent, Fabian Lechner, Phillip Kremer,
+  Johannes Knitza, and Beatriz Merino-Barbancho.
+\newblock Decision and system one models in rheumatology: accuracy and
+  calibration on specialty-training examination questions and diagnostic case
+  vignettes, 2026.
+
+\bibitem[{Microsoft}(2026)]{ms_decision1}
+{Microsoft}.
+\newblock Introducing microsoft-decision-1 in microsoft foundry.
+\newblock
+  \url{https://techcommunity.microsoft.com/blog/azure-ai-foundry-blog/introducing-microsoft-decision-1-in-microsoft-foundry-for-decision-and-classific/4562742},
+  2026.
+\newblock Accessed 2026-11-04.
+
+\bibitem[Mukkunnoth(2026)]{laya2026}
+Nandakishor Mukkunnoth.
 \newblock Laya: Multilingual, non-autoregressive system 1 decision engine.
 \newblock \url{https://github.com/NandhaKishorM/laya}, 2026.
 \newblock Version 0.3.20, Apache-2.0.
+
+\bibitem[Nguyen et~al.(2026)]{llamacpp_systemone}
+Xuan-Son Nguyen et~al.
+\newblock llama, server: add /v1/systemone {API} ({PR} \#29818).
+\newblock \url{https://github.com/ggml-org/llama.cpp/pull/29818}, 2026.
+\newblock Accessed 2026-11-04.
+
+\bibitem[{OpenAI}(2026)]{openai_decisions}
+{OpenAI}.
+\newblock Decisions {API} guide.
+\newblock \url{https://developers.openai.com/api/docs/guides/decisions}, 2026.
+\newblock Beta 2026-10-06, GA 2026-10-22. Accessed 2026-11-04.
 
 \bibitem[Owens et~al.(2019)Owens, Davidson, Krist, et~al.]{owens2019aaa}
 Douglas~K. Owens, Karina~W. Davidson, Alex~H. Krist, et~al.
@@ -54,6 +157,20 @@ Jared Palmer.
 \newblock Kev: Small decision models you can train and run yourself.
 \newblock \url{https://github.com/jaredpalmer/kev}, 2026.
 \newblock Apache-2.0.
+
+\bibitem[Passos and {Hugging Face}(2026)]{decision_index}
+Apolin{\'a}rio Passos and {Hugging Face}.
+\newblock Decision index 0.4.1 leaderboard.
+\newblock
+  \url{https://huggingface.co/datasets/multimodalart/decision-index-leaderboard},
+  2026.
+\newblock Snapshot 2026-11-04. Accessed 2026-11-04.
+
+\bibitem[{Perplexity AI}(2026)]{pplx_decider_v12}
+{Perplexity AI}.
+\newblock pplx-decider-v1.2 model card.
+\newblock \url{https://huggingface.co/perplexity-ai/pplx-decider-v1.2}, 2026.
+\newblock Accessed 2026-11-04.
 
 \bibitem[Roberts et~al.(2021)Roberts, Demner-Fushman, Voorhees, Bedrick, and
   Hersh]{roberts2021trec}
@@ -69,10 +186,36 @@ Zhihong Shao, Peiyi Wang, Qihao Zhu, et~al.
   language models.
 \newblock \emph{arXiv preprint arXiv:2402.03300}, 2024.
 
+\bibitem[Standhartinger(2026)]{jevbench}
+Florian Standhartinger.
+\newblock {JevBench} v1.8.7.
+\newblock \url{https://benchmarkheaven.com/jev-models/all}, 2026.
+\newblock Accessed 2026-11-04.
+
+\bibitem[Stubbs et~al.(2019)Stubbs, Filannino, Soysal, Henry, and
+  Uzuner]{stubbs2019n2c2}
+Amber Stubbs, Michele Filannino, Ergin Soysal, Samuel Henry, and {\"O}zlem
+  Uzuner.
+\newblock Cohort selection for clinical trials: n2c2 2018 shared task track 1.
+\newblock \emph{Journal of the American Medical Informatics Association},
+  26\penalty0 (11):\penalty0 1163--1171, 2019.
+
 \bibitem[{TypeSafe}(2026)]{typesafe2026}
 {TypeSafe}.
 \newblock System one {API} reference.
 \newblock \url{https://docs.typesafe.ai/api}, 2026.
+
+\bibitem[{TypeSafe AI}(2026)]{typesafe_jev_docs}
+{TypeSafe AI}.
+\newblock Jev models and changelog (jev 1.13, jev 1.14).
+\newblock \url{https://docs.typesafe.ai/models}, 2026.
+\newblock Accessed 2026-11-04.
+
+\bibitem[{vLLM Semantic Router}(2026)]{vllmsr_decision2}
+{vLLM Semantic Router}.
+\newblock Decision 2.0 model family.
+\newblock \url{https://huggingface.co/vllm-sr}, 2026.
+\newblock Accessed 2026-11-04.
 
 \bibitem[Warner et~al.(2024)Warner, Chaffin, Clavi{\'e},
   et~al.]{warner2024modernbert}
@@ -87,5 +230,23 @@ Michael Wornow, Alejandro Lozano, Dev Dash, Jenelle Jindal, Kenneth~W.
   Mahaffey, and Nigam~H. Shah.
 \newblock Zero-shot clinical trial patient matching with {LLMs}.
 \newblock \emph{NEJM AI}, 2\penalty0 (1), 2025.
+
+\bibitem[You et~al.(2026)You, Zhou, Tang, Wu, and Hu]{you2026triage}
+Liang You, Zhiyin Zhou, Dawei Tang, Chuchu Wu, and Jingzhuo Hu.
+\newblock Native probability outputs for clinical triage: An evaluation of
+  calibration and decision accuracy, 2026.
+
+\bibitem[Yuan et~al.(2019)Yuan, Ryan, Ta, et~al.]{yuan2019criteria2query}
+Chi Yuan, Patrick~B. Ryan, Casey Ta, et~al.
+\newblock Criteria2query: A natural language interface to clinical databases
+  for cohort definition.
+\newblock \emph{Journal of the American Medical Informatics Association},
+  26\penalty0 (4):\penalty0 294--305, 2019.
+
+\bibitem[Zhang et~al.(2026)Zhang, Vuong, Wagner, others, and
+  Mahmood]{zhang2026cs1}
+Andrew Zhang, Trinh T.~L. Vuong, Sophia~J. Wagner, others, and Faisal Mahmood.
+\newblock A general-purpose system one decision model for clinical records,
+  2026.
 
 \end{thebibliography}

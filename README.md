@@ -34,8 +34,9 @@ the automation threshold and watch coverage and error change, then open any note
 
 1. **One yes/no question per criterion.** State thresholds, inclusivity and units, and never combine two criteria
    in one question. Phrase exclusions positively and mark them `required=False`. See `clinical_system1/checklists.py`.
-2. **Pick a model.** Kev-4B zero-shot if you have ≥16 GB unified memory or a GPU. Laya if you need CPU-only, but
-   only after step 6.
+2. **Pick a model.** Current open decision models served by llama.cpp were strongest zero-shot here: Cloudflare Clef-flash
+   9B and H2O-Lightning-4B (`llama-server -hf ggml-org/Clef-Flash-GGUF:Q8_0 ...`). Kev and Laya work too. Laya needs step 6
+   first, but after it Laya is about 10× faster.
 3. **Give it the arithmetic.** `clinical_system1/facts.py` appends computed pack-years and years since quitting.
    Write the equivalent for your own units.
 4. **Combine the answers.** P(eligible) = the product of the required answers. Every "no" names its criterion.
@@ -67,7 +68,7 @@ print(LUNG.aggregate(p), LUNG.failed(p))      # P(eligible), criteria that block
 | **E2** | TREC Clinical Trials 2021: 600 eligible-vs-excluded patient–trial pairs, with criteria from ClinicalTrials.gov |
 | **E3** | Laya fine-tuned locally with its RLCD recipe, ported to a single Apple GPU |
 | **E4** | The computed-facts hook, measured with and without |
-| Models | Laya EN / multilingual, Kev-0.8B / 4B, and Gemma 4 through Ollama as a generative baseline, all on one M1 Max |
+| Models | Laya EN / multilingual / fine-tuned; Kev-0.8B / 4B / 9B / 27B; H2O-Lightning-4B; Cloudflare Clef-flash 9B; and Gemma 4 through Ollama as a generative baseline. All run on one M1 Max |
 
 The numbers are in `experiments/results/summary.md` and on the docs site (`docs/index.html`).
 

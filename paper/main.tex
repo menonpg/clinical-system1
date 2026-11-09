@@ -176,11 +176,11 @@ We ask a direct eligibility question plus ``meets the inclusion criteria?'' and 
 \subsection{Models}
 \label{sec:systems}
 All systems run locally on one Apple M1 Max laptop (64\,GB unified memory). Table~\ref{tab:systems} lists them.
-Kev-0.8B, Kev-4B and Kev-9B are served by Kev's own MLX server; Kev-27B, H2O-Lightning-4B and Clef-flash by llama.cpp's native \texttt{/v1/systemone} endpoint (build 11960; \texttt{GGML\_METAL\_BF16\_DISABLE=1} was required because the M1 GPU lacks bfloat16).
+Kev-0.8B, Kev-4B and Kev-9B are served by Kev's own MLX server; Kev-27B, H2O-Lightning-4B and Clef-flash by llama.cpp's native \texttt{/v1/systemone} endpoint (build 11960). Two settings were needed on this hardware: \nolinkurl{GGML_METAL_BF16_DISABLE=1}, because the M1 GPU lacks bfloat16, and, for Clef-flash, a physical batch at least as long as the input (\nolinkurl{-b 16384 -ub 16384}).
 All decision models are queried through the same System One client with their shipped calibration.
 We do not apply H2O's optional ``yes/no floor'', which changes reported probabilities.
 The generative baseline, Gemma~4 (about 8B, 4-bit, via Ollama), is asked one question at a time; $P(\text{yes})$ is the softmax over its first-token log-probabilities for ``Yes'' and ``No''.
-For time reasons it was run on the first 250 notes of each E1 test set and on a balanced 300-pair E2 subset; Kev-27B was run on a balanced 300-pair E2 subset.
+For time reasons Gemma~4 was run on the first 250 notes of each E1 template test set and a balanced 300-pair E2 subset. Kev-27B (about 5\,s per note) was run on the first 250 notes of each E1 template test set, all hand-written notes, and a balanced 150-pair E2 subset.
 We tried to include further medical and open models but excluded them for reproducibility reasons:
 \begin{itemize}[nosep]
 \item MedJev \citep{medjev_weights} and MedDecider (non-commercial) require bespoke client runtimes from their model repositories;
@@ -237,15 +237,19 @@ Latency is the median wall-clock time per note for the full five-question lung c
 \subsection{Zero-shot performance of decision models}
 \label{sec:res-zeroshot}
 Tables~\ref{tab:lcs}--\ref{tab:aaa} and Figure~\ref{fig:auroc} summarise the checklist results.
-\textbf{Kev models} are usable out of the box and improve with size: lung AUROC (conjunctive) is 0.73 for Kev-0.8B, 0.88 for Kev-4B and 0.89 for Kev-9B, \TODO{Kev-27B}. AAA is essentially solved from 4B upward.
-\TODO{H2O-Lightning-4B and Clef-flash zero-shot results; compare with Kev at matched size.}
-\textbf{Laya zero-shot is not usable} for this task. Lung AUROC is 0.55--0.75, and all four criteria are right on only 8\% of notes; it misjudges even the explicit age criterion (44\% accuracy). This matches its last-place position on general leaderboards and upstream's warning that the \texttt{noul} head can follow its label text instead of the state.
+\textbf{The newer open decision models are markedly stronger zero-shot.}
+On the lung template notes the conjunctive AUROC is 0.976 for Clef-flash (9B) and 0.919 for H2O-Lightning-4B, against 0.877 for Kev-4B and 0.890 for Kev-9B.
+The gap is clearest in the audit trail: every criterion is right on 80\% of notes for Clef-flash, 51\% for H2O-Lightning-4B, and 40\% and 17\% for Kev-4B and Kev-9B. Kev-9B mislabels the life-limiting criterion on most notes.
+Kev-27B (250 notes, 4-bit) reaches a conjunctive AUROC of 0.977 with every criterion right on 73\% of notes.
+AAA, whose criteria are stated explicitly, is essentially solved by every Kev model from 4B upward and by both new models (AUROC $\geq$0.998).
+\textbf{Laya zero-shot is not usable} for this task. Lung AUROC is 0.55--0.75, all four criteria are right on only 8\% of notes, and it misjudges even the explicit age criterion (44\% accuracy). This matches its position near the bottom of the general leaderboards and upstream's warning that the \texttt{noul} head can follow its label text instead of the state.
 
 \subsection{Which criteria fail}
 \label{sec:res-criteria}
 Arithmetic criteria are the bottleneck for every zero-shot model (Table~\ref{tab:crit}).
-For Kev-4B, age is 98\% correct but pack-years only 77\% and recency 68\%; Kev-9B is similar.
-\TODO{per-criterion pattern for H2O, Clef-flash, Kev-27B.}
+For Kev-4B, age is 98\% correct but pack-years only 77\% and recency 68\%; Kev-9B is similar on recency (69\%).
+The newer models handle arithmetic better but not perfectly: pack-years 88\% and 91\%, and recency 80\% and 91\%, for H2O-Lightning-4B and Clef-flash respectively.
+Kev-27B scores 88\% on pack-years and 92\% on recency.
 \input{tables/crit.tex}
 
 \subsection{Effect of the computed-facts hook}
@@ -253,7 +257,8 @@ For Kev-4B, age is 98\% correct but pack-years only 77\% and recency 68\%; Kev-9
 The hook raises pack-year accuracy for every model (Table~\ref{tab:facts}). Kev-4B goes from 0.77 to 0.98 on template notes and from 0.82 to 1.00 on hand-written notes; Gemma~4 goes from 0.84 to 0.99.
 For the fine-tuned Laya on hand-written notes, AUROC rises from 0.903 to 0.957 and coverage at a 5\% error budget from 38\% to 85\%.
 Kev's \emph{recency} accuracy does not change (0.68) even when ``quit about 16 years before the visit'' is stated, which indicates that it does not reliably compare a stated number with the 15-year cut-off inside a disjunctive question.
-\TODO{facts effect for new models.}
+The newer models benefit as much. With the hook, Clef-flash reaches pack-year and recency accuracies of 1.00 and 0.97 on hand-written notes, and AUROC 1.000 (direct) and 0.997 (conjunctive). H2O-Lightning-4B reaches 1.00 and 1.00, with AUROC 0.989 (direct). Kev-27B reaches AUROC 1.000 (direct) and 0.997 (conjunctive), and the highest safe-automation share in the study on hand-written notes (95\% at a 5\% error budget with the conjunctive score; 100\% with the direct question).
+The hook can also hurt. For H2O-Lightning-4B on template notes, accuracy on the unrelated life-limiting criterion fell from 0.77 to 0.59 when facts were appended, so any hook must be validated on every criterion, not just the ones it targets.
 The hook computed pack-years for all 433 template smokers and for 34 of the 36 hand-written smokers. The two misses were ``from her 20s until 2005'' and ``a few cigarettes on weekends''.
 \input{tables/facts.tex}
 
@@ -261,6 +266,7 @@ The hook computed pack-years for all 433 template smokers and for 34 of the 36 h
 \label{sec:res-and}
 On template notes the conjunctive score is at least as good as the direct question for every system (e.g.\ Gemma~4 lung 0.870$\rightarrow$0.940; Kev-0.8B AAA 0.736$\rightarrow$0.934), and its audit trail is fully correct on 97\% of notes for the fine-tuned Laya.
 It is not uniformly better. For zero-shot Kev on hand-written lung notes the direct question wins (Kev-4B 0.869 vs 0.732; with facts 0.966 vs 0.764), because a single miscalibrated criterion (recency) pulls the product down and sensitivity falls to 0.15.
+The same pattern, high AUROC but low sensitivity at a 0.5 cut-off, appears for most zero-shot models, because a product of four moderately confident ``yes'' answers rarely exceeds 0.5. This is a further reason to set the operating point on labelled notes rather than at 0.5.
 
 \subsection{Local fine-tuning}
 \label{sec:res-ft}
@@ -268,14 +274,14 @@ Fine-tuning took 85 minutes and fitted a \texttt{noul} temperature of 3.5 (0.996
 On the unseen family-B templates the fine-tuned Laya reaches lung AUROC 0.999 and AAA 1.000, with Brier 0.008 and every criterion right on 97\% of notes.
 Because the two template families share phrase vocabulary, the hand-written notes are the stricter test.
 There it scores lung AUROC 0.903 (0.957 with facts), with every criterion right on 85\% (87.5\%) of notes, compared with 0.553 and 10\% before fine-tuning.
-\TODO{position relative to the strongest new zero-shot models on hand-written notes.}
+On hand-written notes the fine-tuned 421M encoder is therefore competitive with the strongest zero-shot models in the study (conjunctive AUROC without/with facts: Kev-27B 0.897/0.997; Clef-flash 0.883/0.997; H2O-Lightning-4B 0.832/0.949), at between a tenth and a fortieth of their latency, although the 27B model automates more notes safely (95\% vs 85\%). With only 40 notes the confidence intervals of the top systems overlap (Table~\ref{tab:lcshand}).
 \input{tables/aaa.tex}
 
 \subsection{Selective automation and threshold transfer}
 \label{sec:res-threshold}
 Coverage at a fixed error budget is the most practical quantity here and also the most fragile (Figure~\ref{fig:rc}).
 The fine-tuned Laya automates 100\% of template notes at $\leq$5\% error with $\tau{=}0.98$, but only 38\% of hand-written notes (85\% with the facts hook).
-Kev-4B automates 42\% of template notes but 28\% of hand-written ones.
+Kev-4B automates 42\% of template notes but 28\% of hand-written ones. The stronger new models degrade less: Kev-27B with facts falls from 100\% to 95\% and Clef-flash with facts from 96\% to 82\% (conjunctive score), and H2O-Lightning-4B with facts and the direct question from 100\% to 90\%.
 A threshold measured on synthetic notes would therefore overstate safe coverage on real text, by a factor of 2.6 for the fine-tuned model.
 \begin{figure}[t]\centering
 \includegraphics[width=.62\linewidth]{figures/risk_coverage.pdf}
@@ -287,15 +293,16 @@ A threshold measured on synthetic notes would therefore overstate safe coverage 
 \label{sec:res-trec}
 Distinguishing eligible from excluded patients for a topically relevant trial is harder (Table~\ref{tab:trec}).
 Kev-4B reaches AUROC 0.820 [0.78, 0.85] directly and 0.839 [0.81, 0.87] with the inclusion$\times$(1$-$exclusion) decomposition. Kev-9B is similar (0.833 / 0.836) and Gemma~4 slightly lower (0.803 / 0.797).
-\TODO{H2O, Clef-flash, Kev-27B on TREC.}
-Coverage at a 5\% error budget is low for all systems ($\leq$7\%), so trial prescreening is a triage aid in this setting rather than a candidate for automation.
+The newer models are slightly better: H2O-Lightning-4B reaches 0.847 [0.82, 0.88] and Clef-flash 0.836 [0.80, 0.87]; Kev-27B reaches 0.903 [0.86, 0.94] on a balanced 150-pair subset.
+The differences among the 4B--9B decision models are within their confidence intervals; all 4B--27B decision models score above the generative baseline (0.803).
+Safe automation is limited: at a 5\% error budget the 4B--9B models auto-decide at most 13\% of pairs (best of the two scores), and the generative baseline 12\%. Kev-27B reaches 32\% with the direct question. In this setting trial prescreening is mainly a triage aid, with the largest model beginning to make partial automation plausible.
 \input{tables/trec.tex}
 
 \subsection{Latency}
 \label{sec:res-latency}
 For the full five-question lung checklist on one M1 Max (Table~\ref{tab:lat}), the fine-tuned Laya takes 124\,ms per note on the GPU and 506\,ms on the CPU alone.
 Kev-0.8B takes 134\,ms, Kev-4B 694\,ms and Gemma~4 1{,}250\,ms.
-\TODO{latency of new models.}
+Through llama.cpp, H2O-Lightning-4B takes about 1.05\,s per note and Clef-flash about 1.47\,s; Kev-9B takes 1.58\,s and Kev-27B (4-bit) about 5.4\,s.
 At 124\,ms per note, a single laptop screens about 29{,}000 notes per hour.
 \input{tables/lat.tex}
 
@@ -304,17 +311,20 @@ At 124\,ms per note, a single laptop screens about 29{,}000 notes per hour.
 \label{sec:discussion}
 
 \subsection{Principal findings}
-Four findings matter most for practice.
-First, the typed-question interface maps onto clinical checklists with no glue code and yields a per-criterion audit trail.
-Second, zero-shot decision models handle explicit criteria (age, sex, ever-smoked) and trial triage reasonably well but are unreliable on criteria that need arithmetic.
-Third, two inexpensive local steps close most of that gap: a deterministic hook that states the arithmetic, and a short fine-tune of a small encoder on synthetic notes. \TODO{update with new models.}
-Fourth, the automation threshold must be measured on the target notes. A threshold taken from synthetic data overstated safe coverage 2.6-fold.
+Five findings matter most for practice.
+\begin{enumerate}[nosep]
+\item The typed-question interface maps onto clinical checklists with no glue code and yields a per-criterion audit trail.
+\item Open decision models improved sharply between September and November 2026. The strongest 4B--9B models released in October (H2O-Lightning-4B, Clef-flash) screen explicit criteria nearly perfectly zero-shot and are much better than earlier open models on criteria that need arithmetic.
+\item Stating the arithmetic with a deterministic hook was the single most effective step for every model, and with it the best zero-shot open model reached AUROC 1.000 on hand-written lung notes. The hook can also degrade an unrelated criterion, so it must be validated on all of them.
+\item A short on-laptop fine-tune turned the weakest model on the general leaderboards into one competitive with the strongest zero-shot models on this checklist, at a tenth to a fortieth of their latency, although the largest model still automated more notes safely. Specialisation from synthetic notes is a practical option when throughput or CPU-only deployment matters.
+\item The automation threshold must be measured on the target notes. A threshold taken from synthetic data overstated safe coverage by up to 2.6-fold, less for stronger models (Kev-27B 100\% vs 95\%) but never zero.
+\end{enumerate}
 
 \subsection{Comparison with prior work}
 Our threshold finding agrees with \citet{lee2026medjev}: out-of-the-box calibration of decision models on patient-level tasks is poor, and a small labelled set (50--200 examples) is enough to repair it.
 CS1-4B \citep{zhang2026cs1} shows what institution-scale clinical training achieves. Our fine-tuning result suggests that much of the benefit for a fixed checklist is available from synthetic notes on a laptop, although our task is far narrower than theirs.
 \citet{he2026trial} found hosted Jev competitive with a schema-constrained LLM on trial criteria; our TREC results show that open models running locally reach AUROC above 0.8 on a related task, although the two settings are not directly comparable.
-General leaderboards were a poor guide: the model ranked 251st of 265 on the Decision Index became one of the strongest on our checklist after fine-tuning.
+General leaderboards were a partial guide. The models that rank highest among those we could run (Kev-27B, Clef-flash) were also strong here, but the model ranked 251st of 265 on the Decision Index became competitive after fine-tuning.
 
 \subsection{Hosted or local deployment}
 Hosted decision APIs are now inexpensive (\$0.01--0.10 per million input tokens), fast, and in some cases ahead on general leaderboards.
@@ -322,9 +332,11 @@ For clinical notes the deciding factor is usually governance.
 Among the providers in Table~\ref{tab:landscape}, only OpenAI states HIPAA eligibility, and Cloudflare states zero data retention; the others offer retention terms under enterprise or written agreements, or make no statement.
 A fully local pipeline needs no agreement, and the step that matters most, measuring the threshold on one's own notes, is the same in either deployment.
 
-\subsection{Where generative models still lead}
-With the facts hook, the generative baseline was the most accurate system on hand-written lung notes (AUROC 0.986), reading varied phrasing better than the decision models we tested, at roughly ten times the latency of the fine-tuned encoder.
-Where throughput matters less than accuracy and the model can run on premises, first-token log-probabilities from a generative model fit the same pipeline.
+\subsection{Decision models and generative models}
+In our September experiments the generative baseline was the most accurate system on hand-written lung notes. That is no longer the case.
+With the facts hook, Gemma~4 reached AUROC 0.986 (conjunctive) and Clef-flash reached 0.997 (conjunctive) and 1.000 (direct), at similar latency on this laptop (1.25\,s and 1.47\,s per note).
+The decision model returns calibrated probabilities through a standard API with no output parsing; the generative model needs one decode per question and a custom log-probability readout.
+For high-throughput or CPU-only settings, the fine-tuned 421M encoder remains about ten times faster than either.
 
 \subsection{Limitations}
 \begin{itemize}[nosep]
@@ -340,7 +352,7 @@ Where throughput matters less than accuracy and the model can run on premises, f
 \section{Conclusion}
 Open decision models running on a laptop can screen standard-of-care checklists in a meaningful way, with no note leaving the machine.
 This requires that the checklist be broken into typed criteria, the arithmetic be made explicit, the model be chosen or specialised on the target task, and the automation threshold be measured on the practitioner's own notes.
-\TODO{final headline numbers.}
+On our benchmark, the best zero-shot open model with an arithmetic hook reached AUROC 1.000 on hand-written lung notes, and a 421M encoder fine-tuned for 85 minutes on a laptop reached 0.957 at 124\,ms per note. In both cases the share of notes that could be automated safely had to be measured on the target notes.
 The released guide, app and predictions allow others to repeat the process for their own checklists.
 
 \section*{Data and code availability}
@@ -385,7 +397,7 @@ Rules we found useful:
 \end{itemize}
 
 \step{Step 2 --- Choose a model and serve it locally}
-Most open decision models can be served on a laptop with one command, and all speak the same request shape:
+Most open decision models can be served on a laptop with one command, and all speak the same request shape. Some need extra flags; for example Clef-flash needs \nolinkurl{-b 16384 -ub 16384} so that a whole note fits in one batch:
 \begin{lstlisting}
 GGML_METAL_BF16_DISABLE=1 llama-server -m h2o-lightning-4b-Q8_0.gguf --no-mmproj -np 1 --port 8031
 cd upstream/kev && uv run --extra serve python -m kev.serve --run jaredpalmer/kev-4b --port 8009
@@ -395,7 +407,7 @@ from clinical_system1.backends import SystemOneBackend
 model = SystemOneBackend("http://127.0.0.1:8031", "h2o-lightning-4b")
 p = model.predict(note_text, LUNG.questions(include_direct=False))   # {criterion: P(yes)}
 \end{lstlisting}
-Leaderboard rank is a weak guide for clinical checklists (\S\ref{sec:discussion}).
+Leaderboard rank is only a partial guide for clinical checklists (\S\ref{sec:discussion}).
 Shortlist two or three models that fit your hardware and licence (several medical models are non-commercial), and run Step~5 on your own notes for each.
 Use hosted APIs only under an agreement that covers protected health information.
 

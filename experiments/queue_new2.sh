@@ -4,8 +4,7 @@ cd "$(dirname "$0")/.."
 LOG=experiments/results
 gguf() { ls ~/.cache/huggingface/hub/models--$1/snapshots/*/$2 2>/dev/null | head -1; }
 wait_file() { until [ -n "$(gguf $1 $2)" ] && ! pgrep -f "hf_hub_download" >/dev/null; do sleep 30; done; }
-until grep -q "h2o4b: done" $LOG/bench_h2o4b.log 2>/dev/null || grep -q "h2o4b: done" $LOG/queue_new.log 2>/dev/null; do sleep 30; done
-LS="env GGML_METAL_BF16_DISABLE=1 llama-server -c 16384 -np 1 --no-kv-unified --no-mmproj --cache-ram 4096"
+LS="env GGML_METAL_BF16_DISABLE=1 llama-server -c 16384 -np 1 --no-kv-unified --no-mmproj --cache-ram 4096 -b 16384 -ub 16384"
 
 wait_file ggml-org--Clef-Flash-GGUF Clef-Flash-Q8_0.gguf
 experiments/bench_model.sh clefflash 8034 0 -- ${=LS} -m $(gguf ggml-org--Clef-Flash-GGUF Clef-Flash-Q8_0.gguf) --alias clef-flash --port 8034

@@ -171,7 +171,7 @@ def main():
                                      [[d[t]["criteria"][c.key]["accuracy"] for c in ck.criteria] + [d[t]["all_criteria_correct"]] for t in tags],
                                      f"{lab} · per-criterion accuracy")
     curves = []
-    for (tag, i) in (("laya", 0), ("laya-ft", 1), ("kev4b", 2), ("ollama_gemma4_latest", 3)):
+    for (tag, i) in (("laya", 0), ("laya-ft", 1), ("kev4b", 2), ("clefflash", 3)):
         c = rc_curve(tag)
         if c:
             curves.append((SHORT[tag], f"--s{i + 1}", *c))
@@ -201,7 +201,7 @@ def paper(curves):
         a = [d[t]["direct"]["auroc"] for t in tags]
         b = [d[t]["checklist_and"]["auroc"] for t in tags]
         ax.bar(xs - .2, a, .38, color=c1, label="Direct question")
-        ax.bar(xs + .2, b, .38, color=c2, label="Checklist-AND")
+        ax.bar(xs + .2, b, .38, color=c2, label="Conjunctive (checklist-AND)")
         for x_, v in zip(xs, b):
             ax.text(x_ + .2, v + .01, f"{v:.2f}", ha="center", fontsize=6)
         ax.set_xticks(xs, [SHORT[t] for t in tags], rotation=30, ha="right")

@@ -34,6 +34,10 @@ FT_DIR = ROOT / "runs" / "laya-clinical"
 DEFAULT_TAU = 0.90  # used when no measured operating point exists (custom checklists, new models)
 
 MODELS = {
+    "clefflash": {"label": "Cloudflare Clef-flash 9B (llama.cpp)", "kind": "s1", "port": 8034,
+                  "hint": "GGML_METAL_BF16_DISABLE=1 llama-server -hf ggml-org/Clef-Flash-GGUF:Q8_0 --no-mmproj -np 1 -b 16384 -ub 16384 --port 8034"},
+    "h2o4b": {"label": "H2O-Lightning-4B (llama.cpp)", "kind": "s1", "port": 8031,
+              "hint": "GGML_METAL_BF16_DISABLE=1 llama-server -hf h2oai/h2o-lightning-4b-gguf:Q8_0 --no-mmproj -np 1 --port 8031"},
     "kev4b": {"label": "Kev-4B", "kind": "kev", "port": 8009, "hub": "jaredpalmer/kev-4b"},
     "kev08b": {"label": "Kev-0.8B", "kind": "kev", "port": 8019, "hub": "jaredpalmer/kev-0.8b"},
     "laya-ft": {"label": "Laya fine-tuned (clinical)", "kind": "laya-ft"},
@@ -50,6 +54,9 @@ def available(key: str) -> tuple[bool, str]:
         if m["kind"] == "kev":
             urllib.request.urlopen(f"http://127.0.0.1:{m['port']}/v1/models", timeout=1)
             return True, ""
+        if m["kind"] == "s1":
+            urllib.request.urlopen(f"http://127.0.0.1:{m['port']}/health", timeout=1)
+            return True, ""
         if m["kind"] == "laya-ft":
             return (FT_DIR / "model.safetensors").exists(), "fine-tuned checkpoint not found in runs/laya-clinical"
         if m["kind"] == "laya":
@@ -59,6 +66,8 @@ def available(key: str) -> tuple[bool, str]:
             return any(t["name"].startswith("gemma4") for t in tags["models"]), "ollama pull gemma4"
     except Exception:
         pass
+    if m["kind"] == "s1":
+        return False, "start it: " + m["hint"]
     if m["kind"] == "kev":
         return False, (f"start it: cd upstream/kev && uv run --extra serve python -m kev.serve "
                        f"--run {m['hub']} --port {m['port']}")
@@ -71,6 +80,7 @@ def backend(key: str) -> B.Backend:
             m = MODELS[key]
             _loaded[key] = {
                 "kev": lambda: B.KevBackend(m.get("port", 0), m["label"]),
+                "s1": lambda: B.SystemOneBackend(f"http://127.0.0.1:{m['port']}", m["label"]),
                 "laya": lambda: B.LayaBackend(model="english", device=ARGS.device),
                 "laya-ft": lambda: B.LayaFTBackend(str(FT_DIR), device=ARGS.device),
                 "ollama": lambda: B.OllamaBackend("gemma4:latest"),

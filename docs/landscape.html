@@ -52,7 +52,7 @@
 <h2>What it means for this project</h2>
 <ul>
   <li><b>One client drives them all.</b> Most open models speak the System One request shape, and llama.cpp serves Laya, Clef, H2O-Lightning and pplx-decider directly, so the app and the experiments needed one generic backend (<code>SystemOneBackend</code>) to add each new model.</li>
-  <li><b>Leaderboards disagree with clinical checklists.</b> Laya ranks 251st of 265 on the general Decision Index and is near chance zero-shot here too. Yet after an 85-minute fine-tune on a laptop it is among the best systems on our lung checklist. Measure on your own task.</li>
+  <li><b>Leaderboards are a partial guide.</b> The strongest models we could run locally (Clef-flash, Kev-27B) were also strong on our clinical checklists, but Laya, ranked 251st of 265 on the general Decision Index and near chance zero-shot here too, became competitive after an 85-minute fine-tune on a laptop. Measure on your own task.</li>
   <li><b>Clinical prior work now exists.</b> Hosted Jev for trial criteria (He et al.), the institution-scale CS1-4B (Mahmood lab), and MedJev, whose finding that 50–200 labels fix patient-level calibration matches our Step 5.</li>
   <li><b>Governance decides hosted vs local.</b> Only OpenAI states HIPAA eligibility. Local models need no agreement at all.</li>
   <li><b>A priority dispute.</b> Laya's author has publicly claimed priority over Jev's architecture. We cite both and take no position.</li>

@@ -96,7 +96,14 @@ def lat_table():
         if k in LAT:
             r = LAT[k]
             L.append(f"{name} & {p} & {r['p50_ms']:.0f} & {r['p90_ms']:.0f} & {r['notes_per_s']:.2f} \\\\")
-    L += [r"\bottomrule\end{tabular}\end{table}"]
+    e1 = S["e1"]["lcs_test"]
+    for name, k, prm in [("Kev-9B v2, MLX bf16", "kev9b", "9B"), ("Kev-27B v2, llama.cpp Q4", "kev27b", "27B"),
+                         ("H2O-Lightning-4B, llama.cpp Q8", "h2o4b", "4B"), ("Clef-flash, llama.cpp Q8", "clefflash", "9B")]:
+        if k in e1 and e1[k]["latency"]:
+            r = e1[k]["latency"]
+            L.append(f"{name}$^*$ & {prm} & {r['p50_ms']:.0f} & {r['p90_ms']:.0f} & {1000 / r['p50_ms']:.2f} \\\\")
+    L += [r"\midrule\multicolumn{5}{l}{\footnotesize $^*$ median over all 500 lung test notes from the benchmark run itself (uncontended, sequential).}\\",
+          r"\bottomrule\end{tabular}\end{table}"]
     (OUT / "lat.tex").write_text("\n".join(L))
 
 
