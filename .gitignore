@@ -16,3 +16,4 @@ paper/*.out
 experiments/results/*.log
 docs/figures/*.png.bak
 paper/arxiv-submission.tar.gz
+SUBMISSION_TRACKER.md
