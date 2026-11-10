@@ -89,4 +89,4 @@ Apache-2.0. Built on [Laya](https://github.com/NandhaKishorM/laya) (Nandakishor 
 [Kev](https://github.com/jaredpalmer/kev) (Jared Palmer, Apache-2.0), with Qwen3.5 base weights (Apache-2.0).
 TREC Clinical Trials 2021 topics and judgements are from NIST, and trial text is from ClinicalTrials.gov.
 USPSTF recommendations: Krist et al., JAMA 2021; Owens et al., JAMA 2019.
-The Menon Lab, [themenonlab.blog](https://themenonlab.blog).
+The Menon Lab, University of Pittsburgh. [themenonlab.blog](https://themenonlab.blog).
